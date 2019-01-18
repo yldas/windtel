@@ -9,7 +9,11 @@ This project originated in the course ICOM4217 - Embedded Systems Design, under 
 and is to be fleshed out in the Capstone course ICOM5047 - Computer Engineering Design.
 
 The WindTel team members are:
+
 Luis O. Vega
+
 Kahlil J. Fonseca
+
 Nelson G. Rodríguez
+
 Misael Valentín
