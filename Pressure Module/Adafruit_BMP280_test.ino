@@ -69,6 +69,7 @@ const int results_for_transmission_capacity = results_capacity*9;      //Indicat
                                                                        //Module. If no Pressure Module Slaves are connected, the total
                                                                        //capacity for transmission will be 16*9 = 144.
 char results_for_transmission[results_for_transmission_capacity];      //Results in type char for transmission to Master Module.
+int results_for_transmission_index = 0;                                //Index used to store the char results.
 
 Adafruit_BMP280 bmp1(BMP_CS1, BMP_MOSI, BMP_MISO,  BMP_SCK);           //BMP280 sensor 1
 Adafruit_BMP280 bmp2(BMP_CS2, BMP_MOSI, BMP_MISO,  BMP_SCK);           //BMP280 sensor 2
@@ -115,7 +116,7 @@ float convertToF(float celsius){
   return celsius*1.8 + 32.0;
 }
 
-//Initiates the I2C communication with the Master Module through ports 6.4 (SDA) and 6.5 (SCL)
+/* Initiates the I2C communication with the Master Module through ports 6.4 (SDA) and 6.5 (SCL) */
 void init(){
     EUSCI_B1->CTLW0 = BIT0;                        //UCSWRST = 1b = software reset enabled
     EUSCI_B1->I2COA0 |= (0x0400 + 0x8000);         //General call response and own address enable
@@ -131,7 +132,7 @@ void init(){
     EUSCI_B1->IE |= 0x000F;                        //Enable interrupts
 }
 
-//Initiates an I2C communication with a Pressure Module Slave through ports 1.6 (SDA) and 1.7 (SCL)
+/* Initiates an I2C communication with a Pressure Module Slave(s) through ports 1.6 (SDA) and 1.7 (SCL) */
 void init2(){
     EUSCI_B0->CTLW0 = BIT0;                         //UCSWRST = 1b = software reset enabled
     EUSCI_B0->CTLW0 |= EUSCI_B_CTLW0_MST;           //Selects this micro-controller as master
@@ -146,7 +147,7 @@ void init2(){
     EUSCI_B0->CTLW0 &= ~BIT0;                       //UCSWRST = 1b = software reset disabled
 }
 
-//Converts the integer parameter num to a string a sends it to the Master Module
+//Converts the integer parameter num to a string, where parameter digits dictate the amount of digits it has
 void convertToChars(int num, int digits){
     int temp1 = num;
     int multiple = 1;
@@ -154,8 +155,10 @@ void convertToChars(int num, int digits){
     int count = 0;
     if(num == 0){
         for(; i < digits; i++){
-            while(!(EUSCI_B1->IFG & BIT1));
-            EUSCI_B1->TXBUF = '0';
+//            while(!(EUSCI_B1->IFG & BIT1));
+//            EUSCI_B1->TXBUF = '0';
+              results_for_transmission[results_for_transmission_index] = '0';
+              results_for_transmission_index++;
         }
     }else{
         while(temp1 != 0){
@@ -171,17 +174,23 @@ void convertToChars(int num, int digits){
         int j = 0;
         while(multiple > 1 || j < digits){
             if((digits - count) > j){
-                while(!(EUSCI_B1->IFG & BIT1));
-                EUSCI_B1->TXBUF = '0';
+//                while(!(EUSCI_B1->IFG & BIT1));
+//                EUSCI_B1->TXBUF = '0';
+                  results_for_transmission[results_for_transmission_index] = '0';
+                  results_for_transmission_index++;
             }else{
                 multiple/= 10;
                 digit = temp1/multiple;
                 if(digit == 0){
-                    while(!(EUSCI_B1->IFG & BIT1));
-                    EUSCI_B1->TXBUF = '0';
+//                    while(!(EUSCI_B1->IFG & BIT1));
+//                    EUSCI_B1->TXBUF = '0';
+                      results_for_transmission[results_for_transmission_index] = '0';
+                      results_for_transmission_index++;
                 }else{
-                    while(!(EUSCI_B1->IFG & BIT1));
-                    EUSCI_B1->TXBUF = digit+'0';
+//                    while(!(EUSCI_B1->IFG & BIT1));
+//                    EUSCI_B1->TXBUF = digit+'0';
+                      results_for_transmission[results_for_transmission_index] = digit+'0';
+                      results_for_transmission_index++;
                 }
                 temp1 %= multiple;
             }
@@ -190,7 +199,20 @@ void convertToChars(int num, int digits){
     }
 }
 
-//This function will transmit the result stored on the array results as a string of characters to the Master Module
+/* Converts a float number to a char array. */
+void convertFloatToChars(float number){
+  int integer = number;
+  float temp = number;
+  temp -= integer;
+  temp *= 100;
+  int fraction = temp;
+  convertToChars(integer, 6);
+  results_for_transmission[results_for_transmission_index] = '@';
+  results_for_transmission_index++;
+  convertToChars(fraction, 2);
+}
+
+/* This function will transmit the result stored on the array results as a string of characters to the Master Module */
 void sendData(void){
     int i;
     int temp1 = 0;
@@ -221,8 +243,8 @@ void sendData(void){
     delay(320000);
 }
 
-//This function will initialize the SPI communication with the pressure sensors, configure each sensor, as well as obtain their data and send
-//it to the Master Module
+/* This function will initialize the SPI communication with the pressure sensors, configure each sensor, as well as obtain their data and send
+it to the Master Module */
 void readDataFunction(){
   if(!begin_bool){
     begin_bool = 1;
@@ -317,7 +339,9 @@ void readDataFunction(){
   results[0] = bmp1.readPressure();
   Serial.print(results[0]);
   Serial.println(" Pa");
-  Serial.println();
+  Serial.println("Char conversion: ");
+  convertFloatToChars(results[0]);
+  Serial.println(results_for_transmission);
   
   delay(1000);
   bmp2.begin();
@@ -330,7 +354,9 @@ void readDataFunction(){
   results[1] = bmp2.readPressure();
   Serial.print(results[1]);
   Serial.println(" Pa");
-  Serial.println();
+  Serial.println("Char conversion: ");
+  convertFloatToChars(results[1]);
+  Serial.println(results_for_transmission);
   
   delay(1000);
   bmp3.begin();
@@ -343,8 +369,12 @@ void readDataFunction(){
   results[2] = bmp3.readPressure();
   Serial.print(results[2]);
   Serial.println(" Pa");
-  Serial.println();
-
+  Serial.println("Char conversion: ");
+  convertFloatToChars(results[2]);
+  Serial.println(results_for_transmission);
+  delay(1000);
+  results_for_transmission_index = 0;
+  
 //  delay(1000);
 //  bmp4.begin();
 //  setSampling(bmp4);
@@ -382,8 +412,8 @@ void readDataFunction(){
 //  delay(1000);
 }
 
-//I2C interrupt handler. The Pressure Module will read the command from the Master Module, and the Pressure Module will proceed to execute
-//the instructed command.
+/* I2C interrupt handler. The Pressure Module will read the command from the Master Module, and the Pressure Module will proceed to execute
+the instructed command. */
 void EUSCIB1_IRQHandler(void){
     //Checks the RX buffer to see if the Master Module has sent a command
     if(EUSCI_B1->IFG & BIT0){
@@ -426,6 +456,8 @@ void EUSCIB1_IRQHandler(void){
     EUSCI_B1->IFG = 0;                      //Clears the interrupt flag
 }
 
+/* Function loop is a default function for the Energia IDE, where as soon as the function setup execute, loop will execute afterwards
+automatically. */
 void loop() {
   readDataFunction();
 }
