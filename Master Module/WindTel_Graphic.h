@@ -2,7 +2,7 @@
  * WindTel_Graphic.h
  *
  *  Created on: Mar 16, 2019
- *      Author: obed
+ *      Author: Luis O. Vega Maisonet
  */
 /* Standard Includes */
 #include <stdint.h>
