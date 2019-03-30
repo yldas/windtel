@@ -22,7 +22,7 @@
 int count = 0;
 int time = 1000;
 char windTunnelVelocity[5];
-
+char rod_LengthBalance[3];
 //Delay function takes 16 bit number (in milliseconds) and performs a delay
 void Delay(uint32_t msec){
     uint32_t i = 0;
@@ -130,27 +130,34 @@ void drawPerformExperimentMenu(Graphics_Context g_sContext, Graphics_Rectangle r
     Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
     Graphics_setFont(&g_sContext, &g_sFontCmss20b);
     Graphics_clearDisplay(&g_sContext);
-    rect.xMax = 315;
-    rect.xMin = 8;
-    rect.yMax = 80;
-    rect.yMin = 60;
+    rect.xMax = 210;
+    rect.xMin = 110;
+    rect.yMax = 105;
+    rect.yMin = 85;
     Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
     Graphics_drawRectangle(&g_sContext,&rect);
     Graphics_fillRectangle(&g_sContext,&rect);
     Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
-    rect.xMax = 315;
-    rect.xMin = 8;
-    rect.yMax = 80;
-    rect.yMin = 60;
     Graphics_drawString(&g_sContext,"Wind Tunnel Telemetry System", AUTO_STRING_LENGTH, 8,10,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,"Perform Experiment Menu", AUTO_STRING_LENGTH, 8,35,GRAPHICS_TRANSPARENT_TEXT);
-    Graphics_drawString(&g_sContext,"1.Please ENTER Rod Length:", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
-    Graphics_drawString(&g_sContext,"000.00cm", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"1.Please ENTER the Rod Length:", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"000.00cm", AUTO_STRING_LENGTH,115,85,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,"2.Return to Main Menu", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
-    Graphics_drawString(&g_sContext,"Current Wind Speed:", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"After selecting the length press CONFIRM", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"CONFIRM:", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
+
 }
 
+void updateRodLength(Graphics_Context g_sContext,int rod_Length){
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+    tostring(rod_LengthBalance,rod_Length);
+    Graphics_drawString(&g_sContext,rod_LengthBalance, AUTO_STRING_LENGTH,115,85,GRAPHICS_TRANSPARENT_TEXT);
 
+    Graphics_drawString(&g_sContext,"000cm", AUTO_STRING_LENGTH,140,85,GRAPHICS_TRANSPARENT_TEXT);
+
+}
 void nextOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int menuIndex,int currentOptionNum)
 {
     rect.xMax = 315;
@@ -202,6 +209,23 @@ void nextOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int menuIn
         }
     }
 
+    if(menuIndex == 3){
+        Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+        Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+        Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+        if(currentOptionNum == 1){
+            Graphics_drawString(&g_sContext,"1. Increase Speed", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"2. Decrease Speed", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+        }
+        else if(currentOptionNum == 2){
+            Graphics_drawString(&g_sContext,"2. Decrease Speed", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"3. Return to Main Menu", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+        }
+        else if(currentOptionNum == 3){
+            Graphics_drawString(&g_sContext,"1. Increase Speed", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"3. Return to Main Menu", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+        }
+    }
     if(menuIndex == 4){
         Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
         Graphics_setFont(&g_sContext, &g_sFontCmss20b);
