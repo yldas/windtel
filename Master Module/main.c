@@ -1,9 +1,9 @@
 /*WindTel Libraries*/
 #include "DriverLibFiles/driverlib.h"
 #include "WindTel_Graphic.h"
+#include "WindTel_I2C.h"
 
 /* Standard Define Libraries */
-#include <stdint.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -11,19 +11,19 @@
 #define TIMER_PERIOD    11718
 
 /* Slave Address for I2C Slave */
-#define SLAVE_ADDRESS       0x000C
-#define NUM_OF_REC_BYTES    11
+#define SLAVE_ADDRESS_PRESSURE       0x000B
+#define SLAVE_ADDRESS_DYNAMIC       0x000C
+#define NUM_OF_REC_BYTES_DYNAMIC    11
 
 /* Variables */
 const uint8_t TXData[] = {0x19};
-static char RXData[NUM_OF_REC_BYTES];
+static char RXData[NUM_OF_REC_BYTES_DYNAMIC];
 static volatile uint32_t xferIndex;
-static volatile bool stopSent;
 
 // Graphic library context
 Graphics_Context g_sContext;
 Graphics_Rectangle rect;
-float currentSpeed =0;
+float currentSpeed = 0;
 int cursor = 1;
 int menuIndex = 1;
 int on_off = 1;
@@ -86,21 +86,8 @@ void main(void){
     // I2C Pin Setup
     MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P3,
                                                    GPIO_PIN6 + GPIO_PIN7, GPIO_PRIMARY_MODULE_FUNCTION);
-    // I2C is not sending any data yet
-    stopSent = false;
 
-    memset(RXData, 0x00, NUM_OF_REC_BYTES);
-
-    /* Initializing I2C Master to SMCLK at 100khz with no autostop */
-    MAP_I2C_initMaster(EUSCI_B2_BASE, &i2cConfig);
-
-    /* Specify slave address */
-    MAP_I2C_setSlaveAddress(EUSCI_B2_BASE, SLAVE_ADDRESS);
-
-    /* Enable I2C Module to start operations */
-    MAP_I2C_enableModule(EUSCI_B2_BASE);
-
-    MAP_Interrupt_enableInterrupt(INT_EUSCIB2);
+    I2C_Init(EUSCI_B2_BASE,&i2cConfig,SLAVE_ADDRESS_DYNAMIC,INT_EUSCIB2,RXData, NUM_OF_REC_BYTES_DYNAMIC);
 
     /* Enabling interrupts and starting the timer */
     MAP_Interrupt_enableSleepOnIsrExit();
@@ -181,23 +168,19 @@ void PORT5_IRQHandler(void){
     //Confirm Button
     if(P5->IFG & BIT6 && !on_off){
         if(menuIndex == 1){
+            if(cursor == 1){
+                SYSCTL->REBOOT_CTL = 0x6901;
+            }
+            if(cursor == 3){
+                drawPerformExperimentMenu(g_sContext,rect);
+            }
             if(cursor == 4){
                 drawSpeedControlMenu(g_sContext, rect);
                 cursor = 1;
                 menuIndex = 4;
-                /* Making sure the last transaction has been completely sent out */
-                while (MAP_I2C_masterIsStopSent(EUSCI_B2_BASE));
-
-                MAP_Interrupt_enableSleepOnIsrExit();
-
-                /* Send start and the first byte of the transmit buffer. */
-                MAP_I2C_masterSendMultiByteStart(EUSCI_B2_BASE, TXData[0]);
-                Delay(1000);
-
-                /* Sent the first byte, now we need to initiate the read */
                 xferIndex = 0;
-                MAP_I2C_masterReceiveStart(EUSCI_B2_BASE);
-                MAP_I2C_enableInterrupt(EUSCI_B2_BASE, EUSCI_B_I2C_RECEIVE_INTERRUPT0);
+                I2C_Init(EUSCI_B2_BASE,&i2cConfig,SLAVE_ADDRESS_DYNAMIC,INT_EUSCIB2,RXData, NUM_OF_REC_BYTES_DYNAMIC);
+                I2C_StartCommunication(EUSCI_B2_BASE,TXData);
             }
         }
 
@@ -300,7 +283,7 @@ void EUSCIB2_IRQHandler(void)
      * send a STOP condition */
     if (status & EUSCI_B_I2C_RECEIVE_INTERRUPT0)
     {
-        if (xferIndex == NUM_OF_REC_BYTES - 2)
+        if (xferIndex == NUM_OF_REC_BYTES_DYNAMIC - 2)
         {
             MAP_I2C_disableInterrupt(EUSCI_B2_BASE,
                                      EUSCI_B_I2C_RECEIVE_INTERRUPT0);
