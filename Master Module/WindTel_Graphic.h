@@ -126,6 +126,31 @@ void updateWindSpeed(Graphics_Context g_sContext,char *cSpeed){
 
 }
 
+void drawPerformExperimentMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_clearDisplay(&g_sContext);
+    rect.xMax = 315;
+    rect.xMin = 8;
+    rect.yMax = 80;
+    rect.yMin = 60;
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+    Graphics_drawRectangle(&g_sContext,&rect);
+    Graphics_fillRectangle(&g_sContext,&rect);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+    rect.xMax = 315;
+    rect.xMin = 8;
+    rect.yMax = 80;
+    rect.yMin = 60;
+    Graphics_drawString(&g_sContext,"Wind Tunnel Telemetry System", AUTO_STRING_LENGTH, 8,10,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Perform Experiment Menu", AUTO_STRING_LENGTH, 8,35,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"1.Please ENTER Rod Length:", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"000.00cm", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"2.Return to Main Menu", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Current Wind Speed:", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+}
+
+
 void nextOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int menuIndex,int currentOptionNum)
 {
     rect.xMax = 315;
