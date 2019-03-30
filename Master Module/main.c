@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+/* Time period for timer A1, control module interrupt*/
 #define TIMER_PERIOD    11718
 
 /* Slave Address for I2C Slave */
@@ -28,7 +29,8 @@ int cursor = 1;
 int menuIndex = 1;
 int on_off = 1;
 int potentiometerStep = 0;
-
+char rodLength[6];
+float rod_Length = 0;
 /* I2C Master Configuration Parameter */
 const eUSCI_I2C_MasterConfig i2cConfig =
 {
@@ -58,7 +60,6 @@ const Timer_A_UpModeConfig updateSpeedConfig =
  TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE ,    // Enable CCR0 interrupt
  TIMER_A_DO_CLEAR                        // Clear value
 };
-
 
 //Main program of the master module
 void main(void){
@@ -112,8 +113,6 @@ void main(void){
     }
 }
 
-
-
 void PORT5_IRQHandler(void){
     //    ON/OFF Button
     if(P5->IFG & BIT1){
@@ -136,6 +135,15 @@ void PORT5_IRQHandler(void){
                     cursor = 1;
             }
             else if(menuIndex == 2){
+                if(cursor == 1){
+//                    nextOption(g_sContext,rect,menuIndex,cursor);
+//                    cursor++;
+//                    if(cursor == 3)
+//                        cursor = 1;
+                }
+                if(cursor == 2){
+
+                }
 
             }
             else if(menuIndex == 4){
@@ -173,6 +181,8 @@ void PORT5_IRQHandler(void){
             }
             if(cursor == 3){
                 drawPerformExperimentMenu(g_sContext,rect);
+                cursor = 1;
+                menuIndex = 3;
             }
             if(cursor == 4){
                 drawSpeedControlMenu(g_sContext, rect);
@@ -181,6 +191,14 @@ void PORT5_IRQHandler(void){
                 xferIndex = 0;
                 I2C_Init(EUSCI_B2_BASE,&i2cConfig,SLAVE_ADDRESS_DYNAMIC,INT_EUSCIB2,RXData, NUM_OF_REC_BYTES_DYNAMIC);
                 I2C_StartCommunication(EUSCI_B2_BASE,TXData);
+            }
+        }
+        if(menuIndex == 2){
+            if(cursor == 1){
+
+            }
+            if(cursor == 2){
+
             }
         }
 
@@ -214,41 +232,16 @@ void PORT5_IRQHandler(void){
             }
         }
 
-        else
-            Graphics_drawString(&g_sContext,"You reached maximum speed!           ", AUTO_STRING_LENGTH, 35,215,GRAPHICS_OPAQUE_TEXT);
     }
 
-
-
-    //Back Button
+    //Increment Button
     if(P5->IFG & BIT7 && !on_off){
         switch(menuIndex){
-        case 1:
-            Graphics_setFont(&g_sContext, &g_sFontCmss20b);
-            menuIndex = 0;
-            break;
-        case 2:
-            menuIndex = 0;
-            break;
         case 3:
-            menuIndex = 0;
+            rod_Length++;
+            updateRodLength(g_sContext,rod_Length);
             break;
-        case 4:
-            menuIndex = 0;
-            break;
-        case 5:
-            //            drawStopWindFan();
-            Graphics_setFont(&g_sContext, &g_sFontCmss20b);
-            menuIndex = 0;
-            break;
-        case 6:
-            Graphics_setFont(&g_sContext, &g_sFontCmss20b);
-            menuIndex = 0;
-            break;
-        case 7:
-            Graphics_setFont(&g_sContext, &g_sFontCmss20b);
-            menuIndex = 0;
-            break;
+
         }
     }
 
