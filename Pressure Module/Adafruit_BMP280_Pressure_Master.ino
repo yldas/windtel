@@ -59,8 +59,9 @@
 #define BMP_CS16 (28)       //Chip Select for BMP16 - P4.7
 
 /* Variable definitions and BMP280 pressure sensors initialized. */
-int begin_bool = 0;                                                    //For data acquisition purposes.
 const int num_pressure_module_slaves = 0;                              //Specify the number of pressure module slaves in the I2C bus.
+const char* pressure_slaves_addresses = {};                            //Specify the slave addresses
+
 const int results_capacity = num_pressure_module_slaves*16 + 16;       //Indicates the maximum total number of results of barometric
                                                                        //pressure measurements. If no Pressure Module Slaves are 
                                                                        //connected, the maximum total number of results will be 16.
@@ -70,6 +71,8 @@ const int results_for_transmission_capacity = results_capacity*9;      //Indicat
                                                                        //capacity for transmission will be 16*9 = 144.
 char results_for_transmission[results_for_transmission_capacity];      //Results in type char for transmission to Master Module.
 int results_for_transmission_index = 0;                                //Index used to store the char results.
+char* sensorsArray = {};                                               //Sensors to be measured among the pressure modules.
+int begin_bool = 0;                                                    //For data acquisition purposes.
 
 Adafruit_BMP280 bmp1(BMP_CS1, BMP_MOSI, BMP_MISO,  BMP_SCK);           //BMP280 sensor 1
 Adafruit_BMP280 bmp2(BMP_CS2, BMP_MOSI, BMP_MISO,  BMP_SCK);           //BMP280 sensor 2
@@ -114,21 +117,6 @@ void setSampling(Adafruit_BMP280 bmp){
 /* convertToF function will convert the parameter celsius to the equivalent temperature in Farenheit. */
 float convertToF(float celsius){
   return celsius*1.8 + 32.0;
-}
-
-/* Initiates an I2C communication with a Pressure Module Slave(s) through ports 1.6 (SDA) and 1.7 (SCL) */
-void init(){
-    EUSCI_B0->CTLW0 = BIT0;                         //UCSWRST = 1b = software reset enabled
-    EUSCI_B0->CTLW0 |= EUSCI_B_CTLW0_MST;           //Selects this micro-controller as master
-    EUSCI_B0->CTLW0 |= EUSCI_B_CTLW0_MODE_3;        //I2C mode
-    EUSCI_B0->CTLW0 |= BIT6;                        //UCSSEL0 = 01b = clk src set to ACLK
-    EUSCI_B0->CTLW0 |= EUSCI_B_CTLW0_TR;            //Sets bus to transmit
-    EUSCI_B0->BRW = (uint16_t) 0x20;                //Baud rate set to 0x20 ~ 4 kilo bits per second
-    P1SEL0 |= BIT6;
-    P1SEL1 &= ~BIT6;
-    P1SEL0 |= BIT7;
-    P1SEL1 &= ~BIT7;
-    EUSCI_B0->CTLW0 &= ~BIT0;                       //UCSWRST = 1b = software reset disabled
 }
 
 //Converts the integer parameter num to a string, where parameter digits dictate the amount of digits it has
@@ -317,8 +305,6 @@ void readDataFunction(){
   Serial.println("Char conversion: ");
   convertFloatToChars(results[2]);
   Serial.println(results_for_transmission);
-  delay(1000);
-  results_for_transmission_index = 0;
   
 //  delay(1000);
 //  bmp4.begin();
@@ -328,10 +314,28 @@ void readDataFunction(){
 //  Serial.print(convertToF(bmp4.readTemperature()));
 //  Serial.println(" *F");
 //  Serial.print(F("Pressure = "));
-//  Serial.print(bmp4.readPressure());
+//  results[3] = bmp4.readPressure();
+//  Serial.print(results[3]);
 //  Serial.println(" Pa");
-//  Serial.println();
-
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[3]);
+//  Serial.println(results_for_transmission);
+//  
+//  delay(1000);
+//  bmp5.begin();
+//  setSampling(bmp5);
+//  Serial.println("Sensor 5:");
+//  Serial.print(F("Temperature = "));
+//  Serial.print(convertToF(bmp5.readTemperature()));
+//  Serial.println(" *F");
+//  Serial.print(F("Pressure = "));
+//  results[4] = bmp5.readPressure();
+//  Serial.print(results[4]);
+//  Serial.println(" Pa");
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[4]);
+//  Serial.println(results_for_transmission);
+//  
 //  delay(1000);
 //  bmp6.begin();
 //  setSampling(bmp6);
@@ -340,65 +344,242 @@ void readDataFunction(){
 //  Serial.print(convertToF(bmp6.readTemperature()));
 //  Serial.println(" *F");
 //  Serial.print(F("Pressure = "));
-//  Serial.print(bmp6.readPressure());
+//  results[5] = bmp6.readPressure();
+//  Serial.print(results[5]);
 //  Serial.println(" Pa");
-//  Serial.println();
-
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[5]);
+//  Serial.println(results_for_transmission);
+//
 //  delay(1000);
+//  bmp7.begin();
+//  setSampling(bmp7);
+//  Serial.println("Sensor 7:");
+//  Serial.print(F("Temperature = "));
+//  Serial.print(convertToF(bmp7.readTemperature()));
+//  Serial.println(" *F");
+//  Serial.print(F("Pressure = "));
+//  results[6] = bmp7.readPressure();
+//  Serial.print(results[6]);
+//  Serial.println(" Pa");
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[6]);
+//  Serial.println(results_for_transmission);
+//  
+//  delay(1000);
+//  bmp8.begin();
+//  setSampling(bmp8);
+//  Serial.println("Sensor 8:");
+//  Serial.print(F("Temperature = "));
+//  Serial.print(convertToF(bmp8.readTemperature()));
+//  Serial.println(" *F");
+//  Serial.print(F("Pressure = "));
+//  results[7] = bmp8.readPressure();
+//  Serial.print(results[7]);
+//  Serial.println(" Pa");
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[7]);
+//  Serial.println(results_for_transmission);
+//  
+//  delay(1000);
+//  bmp9.begin();
+//  setSampling(bmp9);
+//  Serial.println("Sensor 9:");
+//  Serial.print(F("Temperature = "));
+//  Serial.print(convertToF(bmp9.readTemperature()));
+//  Serial.println(" *F");
+//  Serial.print(F("Pressure = "));
+//  results[8] = bmp9.readPressure();
+//  Serial.print(results[8]);
+//  Serial.println(" Pa");
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[8]);
+//  Serial.println(results_for_transmission);
+//
+//  delay(1000);
+//  bmp10.begin();
+//  setSampling(bmp10);
+//  Serial.println("Sensor 10:");
+//  Serial.print(F("Temperature = "));
+//  Serial.print(convertToF(bmp10.readTemperature()));
+//  Serial.println(" *F");
+//  Serial.print(F("Pressure = "));
+//  results[9] = bmp10.readPressure();
+//  Serial.print(results[9]);
+//  Serial.println(" Pa");
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[9]);
+//  Serial.println(results_for_transmission);
+//  
+//  delay(1000);
+//  bmp11.begin();
+//  setSampling(bmp11);
+//  Serial.println("Sensor 11:");
+//  Serial.print(F("Temperature = "));
+//  Serial.print(convertToF(bmp11.readTemperature()));
+//  Serial.println(" *F");
+//  Serial.print(F("Pressure = "));
+//  results[10] = bmp11.readPressure();
+//  Serial.print(results[10]);
+//  Serial.println(" Pa");
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[10]);
+//  Serial.println(results_for_transmission);
+//  
+//  delay(1000);
+//  bmp12.begin();
+//  setSampling(bmp12);
+//  Serial.println("Sensor 12:");
+//  Serial.print(F("Temperature = "));
+//  Serial.print(convertToF(bmp12.readTemperature()));
+//  Serial.println(" *F");
+//  Serial.print(F("Pressure = "));
+//  results[11] = bmp12.readPressure();
+//  Serial.print(results[11]);
+//  Serial.println(" Pa");
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[11]);
+//  Serial.println(results_for_transmission);
+//
+//  delay(1000);
+//  bmp13.begin();
+//  setSampling(bmp13);
+//  Serial.println("Sensor 13:");
+//  Serial.print(F("Temperature = "));
+//  Serial.print(convertToF(bmp13.readTemperature()));
+//  Serial.println(" *F");
+//  Serial.print(F("Pressure = "));
+//  results[12] = bmp13.readPressure();
+//  Serial.print(results[12]);
+//  Serial.println(" Pa");
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[12]);
+//  Serial.println(results_for_transmission);
+//  
+//  delay(1000);
+//  bmp14.begin();
+//  setSampling(bmp14);
+//  Serial.println("Sensor 14:");
+//  Serial.print(F("Temperature = "));
+//  Serial.print(convertToF(bmp14.readTemperature()));
+//  Serial.println(" *F");
+//  Serial.print(F("Pressure = "));
+//  results[13] = bmp14.readPressure();
+//  Serial.print(results[13]);
+//  Serial.println(" Pa");
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[13]);
+//  Serial.println(results_for_transmission);
+//  
+//  delay(1000);
+//  bmp15.begin();
+//  setSampling(bmp15);
+//  Serial.println("Sensor 15:");
+//  Serial.print(F("Temperature = "));
+//  Serial.print(convertToF(bmp15.readTemperature()));
+//  Serial.println(" *F");
+//  Serial.print(F("Pressure = "));
+//  results[14] = bmp15.readPressure();
+//  Serial.print(results[14]);
+//  Serial.println(" Pa");
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[14]);
+//  Serial.println(results_for_transmission);
+//  
+//  delay(1000);
+//  bmp16.begin();
 //  setSampling(bmp16);
 //  Serial.println("Sensor 16:");
 //  Serial.print(F("Temperature = "));
 //  Serial.print(convertToF(bmp16.readTemperature()));
 //  Serial.println(" *F");
 //  Serial.print(F("Pressure = "));
-//  Serial.print(bmp16.readPressure());
+//  results[15] = bmp16.readPressure();
+//  Serial.print(results[15]);
 //  Serial.println(" Pa");
-//  Serial.println();
-//  delay(1000);
+//  Serial.println("Char conversion: ");
+//  convertFloatToChars(results[15]);
+//  Serial.println(results_for_transmission);
+  results_for_transmission_index = 0;
+  delay(1000);
 }
 
-/* I2C interrupt handler. The Pressure Module will read the command from the Master Module, and the Pressure Module will proceed to execute
-the instructed command. */
-void EUSCIB1_IRQHandler(void){
-    //Checks the RX buffer to see if the Master Module has sent a command
-    if(EUSCI_B1->IFG & BIT0){
-//        temp++;
-        while(!(EUSCI_B1->IFG & BIT0));     //Rx flag
-        char x = EUSCI_B1->RXBUF;
-        //Softreset command
-        if(x == 0xFF){
-            SYSCTL->REBOOT_CTL = 0x6901;    //Software Reset
-        //Acquire measurements from Pressure Module Slave(s) command
-        }else if(x == 0x55){
-          char y = EUSCI_B1->RXBUF;
-          int i =0;
-          for(i; i < y; i++){
-//            results_next[i] = EUSCI_B1->RXBUF;
-          }
-        //Acquire measurements from this Pressure Module command
-        }else{
-//            num_sensors = x;
-//            if(data_index == 0){
-////                num_sensors = data[0];
-////                numPackets = num_sensors;
-////                numPackets/=8;
-//                if(num_sensors%8 != 0){
-//                    numPackets+=0x01;
-//                }
-//            }
-//            if((numPackets) == temp){
-//                readDataFunction();
-//            }
-//            num_sensors-=0x01;
-//            data_index++;
-        }
+/* Returns the length of a string */
+int strLength(char* string)
+{
+    char *temp;
+    int len = 0;
+    for (temp = string; *temp != '\0'; temp++)
+    {
+        len++;
     }
-    //Checks the TX buffer to see if the Master Module wants to read the data acquisition from the Pressure Module
-    if(EUSCI_B1->IFG & BIT1){
-//        sendData();
-//        SYSCTL->REBOOT_CTL = 0x6901;        //Software Reset
-    }
-    EUSCI_B1->IFG = 0;                      //Clears the interrupt flag
+    return len;
+}
+
+/* Initiates an I2C communication with a Pressure Module Slave(s) through ports 1.6 (SDA) and 1.7 (SCL) */
+void init(){
+    EUSCI_B0->CTLW0 = BIT0;                         //UCSWRST = 1b = software reset enabled
+    EUSCI_B0->CTLW0 |= EUSCI_B_CTLW0_MST;           //Selects this micro-controller as master
+    EUSCI_B0->CTLW0 |= EUSCI_B_CTLW0_MODE_3;        //I2C mode
+    EUSCI_B0->CTLW0 |= BIT6;                        //UCSSEL0 = 01b = clk src set to ACLK
+    EUSCI_B0->CTLW0 |= EUSCI_B_CTLW0_TR;            //Sets bus to transmit
+    EUSCI_B0->BRW = (uint16_t) 0x20;                //Baud rate set to 0x20 ~ 4 kilo bits per second
+    P1SEL0 |= BIT6;
+    P1SEL1 &= ~BIT6;
+    P1SEL0 |= BIT7;
+    P1SEL1 &= ~BIT7;
+    EUSCI_B0->CTLW0 &= ~BIT0;                       //UCSWRST = 1b = software reset disabled
+}
+
+/* Measure barometric pressure instruction. The parameter slaveAddress is the address of the Pressure Module to send the command,
+parameter numSensors is the number of sensors on the Pressure Module, and array sensors is the char array of the sensors the user
+wants to acquire data from. */
+void measurePressure(char slaveAddress, char numSensors, char* sensors){
+  int lenSensors = strLength(sensors);
+  init();
+  EUSCI_B1->CTLW0 |= EUSCI_B_CTLW0_TR;    //Set to transmitter mode
+  EUSCI_B1->I2CSA |= slaveAddress;        //Pressure Module Slave address
+  Delay(50);
+  EUSCI_B1->CTLW0 |= BIT1;                //START
+  Delay(50);
+  while(!(EUSCI_B1->IFG & BIT1));         //Tx flag
+  EUSCI_B1->TXBUF = numSensors;           //Write number of sensors on TX buffer
+  Delay(50);
+  while(!(EUSCI_B1->IFG & BIT1));
+  int i = 0;
+  for(i; i < lenSensors; i++){
+    char x = sensors[i];
+    EUSCI_B1->TXBUF = x;
+    Delay(50);
+    while(!(EUSCI_B1->IFG & BIT1));
+  }
+  EUSCI_B1->CTLW0 |= BIT2;                //STOP
+  Delay(50);
+  while(!(EUSCI_B1->IFG & BIT3));         //STOP flag
+}
+
+/* 
+   obtainPressureMeasurements will obtain the barometric pressure measurements from a Pressure Module Slave.
+   The Pressure Module Slave is determined by the slave address specified when calling the measurePressure function.
+*/
+void obtainPressureMeasurements(char numSensors){
+  init();
+  EUSCI_B1->CTLW0 &= ~EUSCI_B_CTLW0_TR;   //Set to receiver mode
+  EUSCI_B1->CTLW0 |= BIT1;                //START
+  Delay(50);
+  int i = 0;                              //Global index of the loop
+  int loop1 = numSensors*9;               //Amount of characters to receive from the Pressure Module Slave
+  //loop1 iterations for the loop1 characters to receive (loop1 bytes)
+  for(; i < loop1; i++){
+      Delay(50);
+      while(!(EUSCI_B1->IFG & BIT0));     //Rx flag
+      Delay(50);
+      char temp = EUSCI_B1->RXBUF;        //Receives character and puts it on the RX buffer   
+      results_for_transmission[results_for_transmission_index] = temp;
+      results_for_transmission_index++; 
+  }
+  EUSCI_B1->CTLW0 |= BIT2;                //STOP
+  Delay(50);
 }
 
 /* Function loop is a default function for the Energia IDE, where as soon as the function setup execute, loop will execute afterwards
