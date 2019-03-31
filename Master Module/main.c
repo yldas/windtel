@@ -30,7 +30,7 @@ int menuIndex = 1;
 int on_off = 1;
 int potentiometerStep = 0;
 char rodLength[6];
-float rod_Length = 0;
+int rod_Length = 0;
 /* I2C Master Configuration Parameter */
 const eUSCI_I2C_MasterConfig i2cConfig =
 {
@@ -129,27 +129,27 @@ void PORT5_IRQHandler(void){
     if(!on_off){
         if(P5->IFG & BIT5){
             if(menuIndex == 1){
-                nextOption(g_sContext, rect, menuIndex,cursor);
+                nextOption(g_sContext, rect, menuIndex,cursor,rod_Length);
                 cursor++;
                 if(cursor == 6)
                     cursor = 1;
             }
-            else if(menuIndex == 2){
-                if(cursor == 1){
-//                    nextOption(g_sContext,rect,menuIndex,cursor);
-//                    cursor++;
-//                    if(cursor == 3)
-//                        cursor = 1;
-                }
-                if(cursor == 2){
-
-                }
-
-            }
-            else if(menuIndex == 4){
-                nextOption(g_sContext, rect,menuIndex,cursor);
+            else if(menuIndex == 3){
+                nextOption(g_sContext,rect,menuIndex,cursor,rod_Length);
                 cursor++;
                 if(cursor == 4)
+                    cursor = 1;
+            }
+            else if(menuIndex == 4){
+                nextOption(g_sContext, rect,menuIndex,cursor,rod_Length);
+                cursor++;
+                if(cursor == 4)
+                    cursor = 1;
+            }
+            else if(menuIndex == 6){
+                nextOption(g_sContext, rect,menuIndex,cursor,rod_Length);
+                cursor++;
+                if(cursor == 6)
                     cursor = 1;
             }
         }
@@ -157,16 +157,19 @@ void PORT5_IRQHandler(void){
     //Left Button
     if(P5->IFG & BIT2 && !on_off){
         if(menuIndex == 1){
-            previousOption(g_sContext, rect, menuIndex,cursor);
+            previousOption(g_sContext, rect, menuIndex,cursor,rod_Length);
             cursor--;
             if(cursor == 0)
                 cursor = 5;
         }
-        else if(menuIndex == 2){
-
+        else if(menuIndex == 3){
+            previousOption(g_sContext,rect,menuIndex,cursor,rod_Length);
+            cursor--;
+            if(cursor == 0)
+                cursor = 3;
         }
-        if(menuIndex == 4){
-            previousOption(g_sContext, rect,menuIndex,cursor);
+        else if(menuIndex == 4){
+            previousOption(g_sContext, rect,menuIndex,cursor,rod_Length);
             cursor--;
             if(cursor == 0)
                 cursor = 3;
@@ -180,7 +183,7 @@ void PORT5_IRQHandler(void){
                 SYSCTL->REBOOT_CTL = 0x6901;
             }
             if(cursor == 3){
-                drawPerformExperimentMenu(g_sContext,rect);
+                drawPerformExperimentMenu(g_sContext, rect);
                 cursor = 1;
                 menuIndex = 3;
             }
@@ -193,12 +196,21 @@ void PORT5_IRQHandler(void){
                 I2C_StartCommunication(EUSCI_B2_BASE,TXData);
             }
         }
-        if(menuIndex == 2){
+        else if(menuIndex == 3){
             if(cursor == 1){
-
+                if(rod_Length<500)
+                    rod_Length++;
+                updateRodLength(g_sContext,rod_Length,rect);
             }
             if(cursor == 2){
-
+                drawParameterMenu(g_sContext,rect);
+                menuIndex = 6;
+                cursor = 1;
+            }
+            if(cursor == 3){
+                drawMainMenu(g_sContext,rect);
+                menuIndex = 1;
+                cursor = 1;
             }
         }
 
@@ -209,9 +221,6 @@ void PORT5_IRQHandler(void){
                 /* Enabling MASTER interrupts */
                 MAP_Interrupt_enableMaster();
                 P2->OUT &= ~BIT2;
-
-
-
             }
             else if(cursor == 2){
                 potentiometerStep = 1;
@@ -231,17 +240,29 @@ void PORT5_IRQHandler(void){
                 cursor = 1;
             }
         }
+        else if(menuIndex == 6){
+            if(cursor == 1){
+
+            }
+            if(cursor == 2){
+
+            }
+            if(cursor == 5){
+                drawMainMenu(g_sContext,rect);
+                menuIndex = 1;
+                cursor = 1;
+            }
+        }
 
     }
 
-    //Increment Button
     if(P5->IFG & BIT7 && !on_off){
-        switch(menuIndex){
-        case 3:
-            rod_Length++;
-            updateRodLength(g_sContext,rod_Length);
-            break;
-
+        if(menuIndex == 3){
+            if(cursor == 1){
+                if(rod_Length>0)
+                    rod_Length--;
+                updateRodLength(g_sContext,rod_Length,rect);
+            }
         }
     }
 
