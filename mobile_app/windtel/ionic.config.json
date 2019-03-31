@@ -1,6 +1,8 @@
 {
   "name": "windtel",
-  "integrations": {},
+  "integrations": {
+    "cordova": {}
+  },
   "type": "angular",
   "id": "6affeb8a"
 }
