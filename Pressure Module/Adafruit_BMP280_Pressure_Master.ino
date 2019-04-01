@@ -59,7 +59,7 @@
 #define BMP_CS16 (28)       //Chip Select for BMP16 - P4.7
 
 /* Variable definitions and BMP280 pressure sensors initialized. */
-const int num_pressure_module_slaves = 0;                              //Specify the number of pressure module slaves in the I2C bus.
+const int num_pressure_module_slaves = 1;                              //Specify the number of pressure module slaves in the I2C bus.
 const char* pressure_slaves_addresses = {};                            //Specify the slave addresses
 
 const int results_capacity = num_pressure_module_slaves*16 + 16;       //Indicates the maximum total number of results of barometric
@@ -99,6 +99,8 @@ Adafruit_BMP280 bmp16(BMP_CS16, BMP_MOSI, BMP_MISO,  BMP_SCK);         //BMP280 
 void setup() {
   Serial.begin(9600);
   Serial.println(F("BMP280 test"));
+  CS->CTL1 |= (uint32_t) 0x00000200;              //CTL1[10:8]=SELA=010b - ACLK source set to REFOCLK
+  CS->CLKEN |= (uint32_t) 0x00008000;             //CLKEN[15]=REFOFSEL=1b - REFOCLK set to 128kHz
   __enable_irq();
   NVIC->ISER[0] = 1 << (EUSCIB0_IRQn);
   NVIC->ISER[0] = 1 << (EUSCIB1_IRQn);
@@ -500,8 +502,8 @@ void readDataFunction(){
 //  Serial.println("Char conversion: ");
 //  convertFloatToChars(results[15]);
 //  Serial.println(results_for_transmission);
-  results_for_transmission_index = 0;
-  delay(1000);
+//  results_for_transmission_index = 0;
+//  delay(1000);
 }
 
 /* Returns the length of a string */
@@ -534,28 +536,39 @@ void init(){
 /* Measure barometric pressure instruction. The parameter slaveAddress is the address of the Pressure Module to send the command,
 parameter numSensors is the number of sensors on the Pressure Module, and array sensors is the char array of the sensors the user
 wants to acquire data from. */
-void measurePressure(char slaveAddress, char numSensors, char* sensors){
+void measurePressure(char slaveAddress, char numSensors, char sensors[4]){
   int lenSensors = strLength(sensors);
+  Serial.println("Initializing I2C bus...");
   init();
-  EUSCI_B1->CTLW0 |= EUSCI_B_CTLW0_TR;    //Set to transmitter mode
-  EUSCI_B1->I2CSA |= slaveAddress;        //Pressure Module Slave address
-  Delay(50);
-  EUSCI_B1->CTLW0 |= BIT1;                //START
-  Delay(50);
-  while(!(EUSCI_B1->IFG & BIT1));         //Tx flag
-  EUSCI_B1->TXBUF = numSensors;           //Write number of sensors on TX buffer
-  Delay(50);
-  while(!(EUSCI_B1->IFG & BIT1));
+  Serial.println("Bus initialized!");
+  EUSCI_B0->CTLW0 |= EUSCI_B_CTLW0_TR;    //Set to transmitter mode
+  EUSCI_B0->I2CSA |= slaveAddress;        //Pressure Module Slave address
+  delay(50);
+  Serial.println("Sending start bit...");
+  EUSCI_B0->CTLW0 |= BIT1;                //START
+  delay(50);
+  while(!(EUSCI_B0->IFG & BIT1));         //Tx flag
+  Serial.println("Sending number of sensors...");
+  EUSCI_B0->TXBUF = numSensors;           //Write number of sensors on TX buffer
+  delay(50);
+  while(!(EUSCI_B0->IFG & BIT1));
   int i = 0;
+  Serial.println("Sending sensors...");
+  Serial.println(lenSensors);
   for(i; i < lenSensors; i++){
     char x = sensors[i];
-    EUSCI_B1->TXBUF = x;
-    Delay(50);
-    while(!(EUSCI_B1->IFG & BIT1));
+    delay(50);
+    EUSCI_B0->TXBUF = x;
+    Serial.println(x+0);
+    delay(50);
+    while(!(EUSCI_B0->IFG & BIT1));
+    delay(50);
   }
-  EUSCI_B1->CTLW0 |= BIT2;                //STOP
-  Delay(50);
-  while(!(EUSCI_B1->IFG & BIT3));         //STOP flag
+  Serial.println("Sending stop bit...");
+  EUSCI_B0->CTLW0 |= BIT2;                //STOP
+  delay(50);
+  while(!(EUSCI_B0->IFG & BIT3));         //STOP flag
+  Serial.println("Stop bit sent!");
 }
 
 /* 
@@ -564,26 +577,43 @@ void measurePressure(char slaveAddress, char numSensors, char* sensors){
 */
 void obtainPressureMeasurements(char numSensors){
   init();
-  EUSCI_B1->CTLW0 &= ~EUSCI_B_CTLW0_TR;   //Set to receiver mode
-  EUSCI_B1->CTLW0 |= BIT1;                //START
-  Delay(50);
+  EUSCI_B0->CTLW0 &= ~EUSCI_B_CTLW0_TR;   //Set to receiver mode
+  EUSCI_B0->CTLW0 |= BIT1;                //START
+  delay(150);
   int i = 0;                              //Global index of the loop
   int loop1 = numSensors*9;               //Amount of characters to receive from the Pressure Module Slave
   //loop1 iterations for the loop1 characters to receive (loop1 bytes)
-  for(; i < loop1; i++){
-      Delay(50);
-      while(!(EUSCI_B1->IFG & BIT0));     //Rx flag
-      Delay(50);
-      char temp = EUSCI_B1->RXBUF;        //Receives character and puts it on the RX buffer   
+  for(i; i < loop1; i++){
+      delay(50);
+      Serial.println("Checking Rx flag...");
+      while(!(EUSCI_B0->IFG & BIT0));     //Rx flag
+      delay(250);
+      char temp = EUSCI_B0->RXBUF;        //Receives character and puts it on the RX buffer   
+      Serial.println("temp value: ");
+      Serial.print(temp+0);
       results_for_transmission[results_for_transmission_index] = temp;
       results_for_transmission_index++; 
   }
-  EUSCI_B1->CTLW0 |= BIT2;                //STOP
-  Delay(50);
+  EUSCI_B0->CTLW0 |= BIT2;                //STOP
+  delay(50);
 }
 
 /* Function loop is a default function for the Energia IDE, where as soon as the function setup execute, loop will execute afterwards
 automatically. */
 void loop() {
   readDataFunction();
+  delay(500);
+  char sens[4] = {0x01, 0x02, 0x03};
+  Serial.println("Sending measure command...");
+  measurePressure(0x000A, 0x03, sens);
+  Serial.println("Command sent!");
+  delay(3000);
+  Serial.println("Obtaining pressure measurements...");
+  obtainPressureMeasurements(0x03);
+  Serial.println("Measurements received!");
+  delay(2000);
+  Serial.println("Slave measurements:");
+  Serial.println(results_for_transmission);
+  results_for_transmission_index = 0;
+  delay(10000);
 }
