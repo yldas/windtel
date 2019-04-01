@@ -31,6 +31,7 @@ int on_off = 1;
 int potentiometerStep = 0;
 char rodLength[6];
 int rod_Length = 0;
+char selectedSensors[48];
 /* I2C Master Configuration Parameter */
 const eUSCI_I2C_MasterConfig i2cConfig =
 {
@@ -152,6 +153,12 @@ void PORT5_IRQHandler(void){
                 if(cursor == 6)
                     cursor = 1;
             }
+            else if(menuIndex == 7 || menuIndex == 8){
+                nextSensor(g_sContext, rect,menuIndex,selectedSensors,cursor);
+                cursor++;
+                if(cursor == 12)
+                    cursor = 1;
+            }
         }
     }
     //Left Button
@@ -173,6 +180,18 @@ void PORT5_IRQHandler(void){
             cursor--;
             if(cursor == 0)
                 cursor = 3;
+        }
+        else if(menuIndex == 6){
+            previousOption(g_sContext, rect,menuIndex,cursor,rod_Length);
+            cursor--;
+            if(cursor == 0)
+                cursor = 5;
+        }
+        else if(menuIndex == 7 || menuIndex == 8){
+            previousSensor(g_sContext, rect,menuIndex,selectedSensors,cursor);
+            cursor--;
+            if(cursor == 0)
+                cursor = 11;
         }
     }
 
@@ -242,7 +261,9 @@ void PORT5_IRQHandler(void){
         }
         else if(menuIndex == 6){
             if(cursor == 1){
-
+                drawPressureMenu(g_sContext,rect);
+                menuIndex = 7;
+                cursor = 1;
             }
             if(cursor == 2){
 
@@ -253,7 +274,60 @@ void PORT5_IRQHandler(void){
                 cursor = 1;
             }
         }
+        else if(menuIndex == 7){
+            if(cursor > 0 && cursor < 10){
+                selectSensor(g_sContext, rect, cursor);
+            }
 
+            if(cursor == 10){
+                drawMorePressureMenu(g_sContext,rect);
+                menuIndex = 8;
+                cursor = 1;
+            }
+            if(cursor == 11){
+                drawParameterMenu(g_sContext,rect);
+                menuIndex = 6;
+                cursor = 1;
+            }
+        }
+        else if(menuIndex == 8){
+            if(cursor == 1){
+                //                selectSensor(g_sContext,rect,selectedSensors);
+                menuIndex = 7;
+                cursor = 1;
+            }
+            if(cursor == 2){
+
+            }
+            if(cursor == 3){
+
+            }
+            if(cursor == 4){
+
+            }
+            if(cursor == 5){
+
+            }
+            if(cursor == 6){
+
+            }
+            if(cursor == 7){
+
+            }
+            if(cursor == 8){
+
+            }
+            if(cursor == 9){
+
+            }
+            if(cursor == 10){
+            }
+            if(cursor == 11){
+                drawParameterMenu(g_sContext,rect);
+                menuIndex = 6;
+                cursor = 1;
+            }
+        }
     }
 
     if(P5->IFG & BIT7 && !on_off){
