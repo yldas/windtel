@@ -169,6 +169,12 @@ void PORT5_IRQHandler(void){
                 if(cursor == 8)
                     cursor = 1;
             }
+            else if(menuIndex == 10){
+                nextOption(g_sContext, rect,menuIndex,cursor,rod_Length);
+                cursor++;
+                if(cursor == 5)
+                    cursor = 1;
+            }
         }
     }
     //Left Button
@@ -208,6 +214,12 @@ void PORT5_IRQHandler(void){
             cursor--;
             if(cursor == 0)
                 cursor = 7;
+        }
+        else if(menuIndex == 10){
+            previousOption(g_sContext, rect,menuIndex,cursor,rod_Length);
+            cursor--;
+            if(cursor == 0)
+                cursor = 4;
         }
     }
 
@@ -441,11 +453,9 @@ void PORT5_IRQHandler(void){
             }
         }
         else if(menuIndex == 10){
-            if(cursor == 1){
-                if(seconds<300){
-                    seconds++;
-                    updateTimeDuration(g_sContext,seconds,rect);
-                }
+            if(cursor == 1 && seconds<300){
+                seconds++;
+                updateTimeDuration(g_sContext,seconds,rect);
             }
             else if(cursor == 2){
 
@@ -460,7 +470,9 @@ void PORT5_IRQHandler(void){
                         selectTempHumid(g_sContext, rect, i+3);
             }
             else if(cursor == 4){
-
+                drawMainMenu(g_sContext,rect);
+                menuIndex = 1;
+                cursor = 1;
             }
         }
     }

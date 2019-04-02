@@ -39,6 +39,4 @@ void I2C_StartCommunication(const I2C_REGISTER, uint8_t* TXData){
     MAP_I2C_enableInterrupt(I2C_REGISTER, EUSCI_B_I2C_RECEIVE_INTERRUPT0);
 }
 
-
-
 #endif /* WINDTEL_I2C_H_ */

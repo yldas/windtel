@@ -1080,7 +1080,7 @@ void nextOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int menuIn
         rect.xMax = 315;
         rect.xMin = 8;
 
-        if(menuIndex != 3){
+        if(menuIndex != 3 && menuIndex != 10){
             rect.yMax = 80 + 25*(currentOptionNum-1);
             rect.yMin = 60 + 25*(currentOptionNum-1);
         }
@@ -1097,8 +1097,8 @@ void nextOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int menuIn
             rect.yMax = 80;
             rect.yMin = 60;
         }
-        else if(menuIndex == 3){
-            if(currentOptionNum == 3){
+        else if(menuIndex == 3 || menuIndex == 10){
+            if((menuIndex == 3 &&currentOptionNum == 3) || (currentOptionNum == 4 && menuIndex == 10)){
                 rect.xMax = 315;
                 rect.xMin = 8;
                 rect.yMax = 105;
@@ -1215,6 +1215,24 @@ void nextOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int menuIn
             Graphics_drawString(&g_sContext,"6.Return to Main Menu", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
         }
     }
+    if(menuIndex == 10){
+        if(currentOptionNum == 1){
+            Graphics_drawString(&g_sContext,experimentDuration, AUTO_STRING_LENGTH,115,85,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"2.Confirm the selected duration", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+        }
+        else if(currentOptionNum == 2){
+            Graphics_drawString(&g_sContext,"2.Confirm the selected duration", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"3.Return to Parameter Menu", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+        }
+        else if(currentOptionNum == 3){
+            Graphics_drawString(&g_sContext,"3.Return to Parameter Menu", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"4.Return to Main Menu", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+        }
+        else if(currentOptionNum == 4){
+            Graphics_drawString(&g_sContext,experimentDuration, AUTO_STRING_LENGTH,115,85,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"4.Return to Main Menu", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+        }
+    }
 
 }
 void previousOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int menuIndex,int currentOptionNum,int rod_Length)
@@ -1265,7 +1283,7 @@ void previousOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int me
     {
         rect.xMax = 315;
         rect.xMin = 8;
-        if(menuIndex !=3){
+        if(menuIndex !=3 && menuIndex != 10){
             rect.yMax = 80 + 25*(currentOptionNum-1);
             rect.yMin = 60 + 25*(currentOptionNum-1);
         }
@@ -1309,6 +1327,21 @@ void previousOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int me
             rect.xMin = 8;
             rect.yMax = 205;
             rect.yMin = 185;
+        }
+        else if(menuIndex == 10){
+            if(currentOptionNum == 1){
+                rect.xMax = 315;
+                rect.xMin = 8;
+                rect.yMax = 180;
+                rect.yMin = 160;
+            }
+            else
+            {
+                rect.xMax = 315;
+                rect.xMin = 8;
+                rect.yMax = 105 + 25*(currentOptionNum-2);
+                rect.yMin = 85 + 25*(currentOptionNum-2);
+            }
         }
         else{
             rect.xMax = 315;
@@ -1405,6 +1438,25 @@ void previousOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int me
         else if(currentOptionNum == 6){
             Graphics_drawString(&g_sContext,"5.Proceed with the experiment", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
             Graphics_drawString(&g_sContext,"6.Return to Main Menu", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
+        }
+    }
+
+    if(menuIndex == 10){
+        if(currentOptionNum == 1){
+            Graphics_drawString(&g_sContext,experimentDuration, AUTO_STRING_LENGTH,115,85,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"4.Return to Main Menu", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+        }
+        else if(currentOptionNum == 2){
+            Graphics_drawString(&g_sContext,experimentDuration, AUTO_STRING_LENGTH,115,85,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"2.Confirm the selected duration", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+        }
+        else if(currentOptionNum == 3){
+            Graphics_drawString(&g_sContext,"2.Confirm the selected duration", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"3.Return to Parameter Menu", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+        }
+        else if(currentOptionNum == 4){
+            Graphics_drawString(&g_sContext,"3.Return to Parameter Menu", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"4.Return to Main Menu", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
         }
     }
 
