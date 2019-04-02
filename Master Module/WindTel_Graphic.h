@@ -23,7 +23,12 @@ int count = 0;
 int time = 1000;
 char windTunnelVelocity[5];
 char rod_LengthBalance[6] = {'0','c','m',' '};
-
+char experimentDuration[10] = {'5','s','e','c',' ',' '};
+int min = 0;
+int decimal = 0;
+char minChar = '0';
+char decimalChar1 = '0';
+char decimalChar2 = '0';
 
 //Delay function takes 16 bit number (in milliseconds) and performs a delay
 void Delay(uint32_t msec){
@@ -128,6 +133,67 @@ void updateWindSpeed(Graphics_Context g_sContext,char *cSpeed){
 
 }
 
+void updateTimeDuration(Graphics_Context g_sContext,int secs,Graphics_Rectangle rect){
+    if(secs < 60){
+        if(secs<10){
+            tostring(experimentDuration,secs);
+            experimentDuration[1] = 's';
+            experimentDuration[2] = 'e';
+            experimentDuration[3] = 'c';
+            experimentDuration[4] = ' ';
+            experimentDuration[5] = ' ';
+        }
+        else{
+            tostring(experimentDuration,secs);
+            experimentDuration[2] = 's';
+            experimentDuration[3] = 'e';
+            experimentDuration[4] = 'c';
+            experimentDuration[5] = ' ';
+            experimentDuration[6] = ' ';
+        }
+    }
+    else{
+        min = secs/60;
+        if(min == 1)
+            decimal = secs - 60;
+        else if(min == 2)
+            decimal = secs - 120;
+        else if(min == 3)
+            decimal = secs - 180;
+        else if(min == 4)
+            decimal = secs - 240;
+        else if(min == 5)
+            decimal = secs - 300;
+        minChar = '0' + min;
+        decimalChar1 = '0' + decimal/10;
+        decimalChar2 = '0' + 10*((decimal/10.0) - (decimal/10));
+        experimentDuration[0] = minChar;
+        experimentDuration[1] = '.';
+        experimentDuration[2] = decimalChar1;
+        experimentDuration[3] = decimalChar2;
+        experimentDuration[4] = 'm';
+        experimentDuration[5] = 'i';
+        experimentDuration[6] = 'n';
+        experimentDuration[7] = ' ';
+        experimentDuration[8] = ' ';
+    }
+
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    rect.xMax = 315;
+    rect.xMin = 8;
+    rect.yMax = 105;
+    rect.yMin = 85;
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+    Graphics_drawRectangle(&g_sContext,&rect);
+    Graphics_fillRectangle(&g_sContext,&rect);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+    if(secs != 5)
+        Graphics_drawString(&g_sContext,experimentDuration, AUTO_STRING_LENGTH,115,85,GRAPHICS_TRANSPARENT_TEXT);
+    else
+        Graphics_drawString(&g_sContext,"5sec", AUTO_STRING_LENGTH,115,85,GRAPHICS_TRANSPARENT_TEXT);
+
+}
 void drawPerformExperimentMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
     Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
     Graphics_setFont(&g_sContext, &g_sFontCmss20b);
@@ -201,9 +267,10 @@ void drawParameterMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
     Graphics_drawString(&g_sContext,"Select parameters to measure", AUTO_STRING_LENGTH, 8,35,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,"1.Barometric Pressure", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,"2.Wind Exerted Forces", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
-    Graphics_drawString(&g_sContext,"3.Relative Humidity", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
-    Graphics_drawString(&g_sContext,"4.Temperature", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
-    Graphics_drawString(&g_sContext,"5.Return to Main Menu", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"3.Relative Humidity      [ ]", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"4.Temperature           [ ]", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"5.Proceed with the experiment", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"6.Return to Main Menu", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
 }
 
 void drawPressureMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
@@ -260,22 +327,292 @@ void drawMorePressureMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
     Graphics_drawString(&g_sContext,"More Sensors", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,"Return to Parameter Menu", AUTO_STRING_LENGTH, 8,210,GRAPHICS_TRANSPARENT_TEXT);
 }
+
+void drawForceMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_clearDisplay(&g_sContext);
+    rect.xMax = 125;
+    rect.xMin = 8;
+    rect.yMax = 80;
+    rect.yMin = 60;
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+    Graphics_drawRectangle(&g_sContext,&rect);
+    Graphics_fillRectangle(&g_sContext,&rect);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+    Graphics_drawString(&g_sContext,"Wind Tunnel Telemetry System", AUTO_STRING_LENGTH, 8,10,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Select forces", AUTO_STRING_LENGTH, 8,35,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"1.All Forces    [  ]", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"2.Drag Front   [  ]", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"3.Drag Back    [  ]", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"4.Side Right    [  ]", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"5.Side Left     [  ]", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"6.Up            [  ]", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"7.Return to Parameter Menu", AUTO_STRING_LENGTH, 8,210,GRAPHICS_TRANSPARENT_TEXT);
+
+}
+
+void drawExperimentDurationMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_clearDisplay(&g_sContext);
+    rect.xMax = 315;
+    rect.xMin = 8;
+    rect.yMax = 105;
+    rect.yMin = 85;
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+    Graphics_drawRectangle(&g_sContext,&rect);
+    Graphics_fillRectangle(&g_sContext,&rect);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+    Graphics_drawString(&g_sContext,"Wind Tunnel Telemetry System", AUTO_STRING_LENGTH, 8,10,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Perform Experiment Menu", AUTO_STRING_LENGTH, 8,35,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"1.Enter the experiment duration:", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,experimentDuration, AUTO_STRING_LENGTH,115,85,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"2.Confirm the selected duration", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"3.Return to Parameter Menu", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"4.Return to Main Menu", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+}
 void selectSensor(Graphics_Context g_sContext, Graphics_Rectangle rect,int currentOptionNum){
+    int cursorPosition = 85 + (currentOptionNum-2)*25;
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_LIGHT_GREEN);
+    if(currentOptionNum == 1)
+        Graphics_drawString(&g_sContext,"x", AUTO_STRING_LENGTH, 127,60,GRAPHICS_TRANSPARENT_TEXT);
+    else if(currentOptionNum < 6)
+        Graphics_drawString(&g_sContext,"x", AUTO_STRING_LENGTH, 113,cursorPosition,GRAPHICS_TRANSPARENT_TEXT);
+    else{
+        cursorPosition = 87 + (currentOptionNum-6)*25;
+        Graphics_drawString(&g_sContext,"x", AUTO_STRING_LENGTH, 255,cursorPosition,GRAPHICS_TRANSPARENT_TEXT);
+    }
+}
+
+void deselectSensor(Graphics_Context g_sContext, Graphics_Rectangle rect,int currentOptionNum){
     int cursorPosition = 87 + (currentOptionNum-2)*25;
     Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
     Graphics_setFont(&g_sContext, &g_sFontCmss20b);
     Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_LIGHT_GREEN);
     if(currentOptionNum == 1)
-        Graphics_drawString(&g_sContext,"X", AUTO_STRING_LENGTH, 126,62,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext," ", AUTO_STRING_LENGTH, 127,62,GRAPHICS_OPAQUE_TEXT);
     else if(currentOptionNum < 6)
-        Graphics_drawString(&g_sContext,"X", AUTO_STRING_LENGTH, 112,cursorPosition,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext," ", AUTO_STRING_LENGTH, 113,cursorPosition,GRAPHICS_OPAQUE_TEXT);
     else{
         cursorPosition = 87 + (currentOptionNum-6)*25;
-        Graphics_drawString(&g_sContext,"X", AUTO_STRING_LENGTH, 254,cursorPosition,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext," ", AUTO_STRING_LENGTH, 255,cursorPosition,GRAPHICS_OPAQUE_TEXT);
     }
 }
 
-void nextSensor(Graphics_Context g_sContext, Graphics_Rectangle rect,int menuIndex, char selectedSensors[48],int currentOptionNum){
+void selectForce(Graphics_Context g_sContext, Graphics_Rectangle rect,int currentOptionNum){
+    int cursorPosition = 60 + (currentOptionNum-1)*25;
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_LIGHT_GREEN);
+    Graphics_drawString(&g_sContext," x", AUTO_STRING_LENGTH, 160,cursorPosition,GRAPHICS_TRANSPARENT_TEXT);
+}
+
+void deselectForce(Graphics_Context g_sContext, Graphics_Rectangle rect,int currentOptionNum){
+    int cursorPosition = 60 + (currentOptionNum-1)*25;
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_LIGHT_GREEN);
+    Graphics_drawString(&g_sContext,"  ", AUTO_STRING_LENGTH, 161,cursorPosition,GRAPHICS_OPAQUE_TEXT);
+
+}
+
+void selectTempHumid(Graphics_Context g_sContext, Graphics_Rectangle rect,int currentOptionNum){
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_LIGHT_GREEN);
+    if(currentOptionNum == 3)
+        Graphics_drawString(&g_sContext,"x", AUTO_STRING_LENGTH, 252,110,GRAPHICS_TRANSPARENT_TEXT);
+    if(currentOptionNum == 4)
+        Graphics_drawString(&g_sContext,"x", AUTO_STRING_LENGTH, 252,135,GRAPHICS_TRANSPARENT_TEXT);
+}
+
+void deselectTempHumid(Graphics_Context g_sContext, Graphics_Rectangle rect,int currentOptionNum){
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_LIGHT_GREEN);
+    if(currentOptionNum == 3)
+        Graphics_drawString(&g_sContext," ", AUTO_STRING_LENGTH, 252,110,GRAPHICS_OPAQUE_TEXT);
+    if(currentOptionNum == 4)
+        Graphics_drawString(&g_sContext," ", AUTO_STRING_LENGTH, 252,135,GRAPHICS_OPAQUE_TEXT);
+}
+
+void nextForce(Graphics_Context g_sContext, Graphics_Rectangle rect,int menuIndex,int currentOptionNum){
+    if(currentOptionNum == 6){
+        rect.xMax = 125;
+        rect.xMin = 8;
+        rect.yMax = 205;
+        rect.yMin = 185;
+
+        Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+        Graphics_drawRectangle(&g_sContext,&rect);
+        Graphics_fillRectangle(&g_sContext,&rect);
+
+        rect.xMax = 315;
+        rect.xMin = 8;
+        rect.yMax = 230;
+        rect.yMin = 210;
+    }
+    else if(currentOptionNum == 7){
+        rect.xMax = 315;
+        rect.xMin = 8;
+        rect.yMax = 230;
+        rect.yMin = 210;
+
+        Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+        Graphics_drawRectangle(&g_sContext,&rect);
+        Graphics_fillRectangle(&g_sContext,&rect);
+
+        rect.xMax = 125;
+        rect.xMin = 8;
+        rect.yMax = 80;
+        rect.yMin = 60;
+    }
+    else{
+        rect.xMax = 125;
+        rect.xMin = 8;
+        rect.yMax = 80 + 25*(currentOptionNum-1);
+        rect.yMin = 60 + 25*(currentOptionNum-1);
+
+        Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+        Graphics_drawRectangle(&g_sContext,&rect);
+        Graphics_fillRectangle(&g_sContext,&rect);
+
+
+        rect.xMax = 125;
+        rect.xMin = 8;
+        rect.yMax = 80 + 25*currentOptionNum;
+        rect.yMin = 60 + 25*currentOptionNum;
+
+    }
+
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+    Graphics_drawRectangle(&g_sContext,&rect);
+    Graphics_fillRectangle(&g_sContext,&rect);
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+
+
+    if(currentOptionNum == 1){
+        Graphics_drawString(&g_sContext,"1.All Forces", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"2.Drag Front", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 2){
+        Graphics_drawString(&g_sContext,"2.Drag Front", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"3.Drag Back", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 3){
+        Graphics_drawString(&g_sContext,"3.Drag Back", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"4.Side Right", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 4){
+        Graphics_drawString(&g_sContext,"4.Side Right", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"5.Side Left", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 5){
+        Graphics_drawString(&g_sContext,"5.Side Left", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"6.Up", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 6){
+        Graphics_drawString(&g_sContext,"6.Up", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"7.Return to Parameter Menu", AUTO_STRING_LENGTH, 8,210,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 7){
+        Graphics_drawString(&g_sContext,"7.Return to Parameter Menu", AUTO_STRING_LENGTH, 8,210,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"1.All Forces", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+    }
+}
+
+void previousForce(Graphics_Context g_sContext, Graphics_Rectangle rect,int menuIndex,int currentOptionNum){
+    if(currentOptionNum == 1){
+        rect.xMax = 125;
+        rect.xMin = 8;
+        rect.yMax = 80;
+        rect.yMin = 60;
+
+        Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+        Graphics_drawRectangle(&g_sContext,&rect);
+        Graphics_fillRectangle(&g_sContext,&rect);
+
+        rect.xMax = 315;
+        rect.xMin = 8;
+        rect.yMax = 230;
+        rect.yMin = 210;
+    }
+    else if(currentOptionNum == 7){
+        rect.xMax = 315;
+        rect.xMin = 8;
+        rect.yMax = 230;
+        rect.yMin = 210;
+
+        Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+        Graphics_drawRectangle(&g_sContext,&rect);
+        Graphics_fillRectangle(&g_sContext,&rect);
+        rect.xMax = 125;
+        rect.xMin = 8;
+        rect.yMax = 205;
+        rect.yMin = 185;
+    }
+    else{
+        rect.xMax = 125;
+        rect.xMin = 8;
+        rect.yMax = 80 + 25*(currentOptionNum-1);
+        rect.yMin = 60 + 25*(currentOptionNum-1);
+
+        Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+        Graphics_drawRectangle(&g_sContext,&rect);
+        Graphics_fillRectangle(&g_sContext,&rect);
+
+
+        rect.xMax = 125;
+        rect.xMin = 8;
+        rect.yMax = 80 + 25*(currentOptionNum-2);
+        rect.yMin = 60 + 25*(currentOptionNum-2);
+
+    }
+
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+    Graphics_drawRectangle(&g_sContext,&rect);
+    Graphics_fillRectangle(&g_sContext,&rect);
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+
+
+    if(currentOptionNum == 1){
+        Graphics_drawString(&g_sContext,"1.All Forces", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"7.Return to Parameter Menu", AUTO_STRING_LENGTH, 8,210,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 2){
+        Graphics_drawString(&g_sContext,"1.All Forces", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"2.Drag Front", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 3){
+        Graphics_drawString(&g_sContext,"2.Drag Front", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"3.Drag Back", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 4){
+        Graphics_drawString(&g_sContext,"3.Drag Back", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"4.Side Right", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 5){
+        Graphics_drawString(&g_sContext,"4.Side Right", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"5.Side Left", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 6){
+        Graphics_drawString(&g_sContext,"5.Side Left", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"6.Up", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
+    }
+    else if(currentOptionNum == 7){
+        Graphics_drawString(&g_sContext,"6.Up", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
+        Graphics_drawString(&g_sContext,"7.Return to Parameter Menu", AUTO_STRING_LENGTH, 8,210,GRAPHICS_TRANSPARENT_TEXT);
+    }
+}
+
+void nextSensor(Graphics_Context g_sContext, Graphics_Rectangle rect,int menuIndex,int currentOptionNum){
     if(currentOptionNum == 1){
         rect.xMax = 112;
         rect.xMin = 8;
@@ -485,7 +822,7 @@ void nextSensor(Graphics_Context g_sContext, Graphics_Rectangle rect,int menuInd
     }
 }
 
-void previousSensor(Graphics_Context g_sContext, Graphics_Rectangle rect,int menuIndex, char selectedSensors[48],int currentOptionNum){
+void previousSensor(Graphics_Context g_sContext, Graphics_Rectangle rect,int menuIndex,int currentOptionNum){
 
     if(currentOptionNum == 1){
         rect.xMax = 112;
@@ -503,7 +840,7 @@ void previousSensor(Graphics_Context g_sContext, Graphics_Rectangle rect,int men
         rect.yMin = 210;
     }
     else if(currentOptionNum == 2){
-        rect.xMax = 112;
+        rect.xMax = 100;
         rect.xMin = 8;
         rect.yMax = 105;
         rect.yMin = 85;
@@ -698,47 +1035,91 @@ void previousSensor(Graphics_Context g_sContext, Graphics_Rectangle rect,int men
 }
 void nextOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int menuIndex,int currentOptionNum,int rod_Length)
 {
-    rect.xMax = 315;
-    rect.xMin = 8;
+    if(menuIndex == 6 && currentOptionNum > 1 && currentOptionNum < 5){
+        if(currentOptionNum == 2){
+            rect.xMax = 315;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*(currentOptionNum-1);
+            rect.yMin = 60 + 25*(currentOptionNum-1);
+            Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+            Graphics_drawRectangle(&g_sContext,&rect);
+            Graphics_fillRectangle(&g_sContext,&rect);
+            rect.xMax = 200;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*currentOptionNum;
+            rect.yMin = 60 + 25*currentOptionNum;
+        }
+        else if(currentOptionNum == 3){
+            rect.xMax = 200;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*(currentOptionNum-1);
+            rect.yMin = 60 + 25*(currentOptionNum-1);
+            Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+            Graphics_drawRectangle(&g_sContext,&rect);
+            Graphics_fillRectangle(&g_sContext,&rect);
+            rect.xMax = 200;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*currentOptionNum;
+            rect.yMin = 60 + 25*currentOptionNum;
+        }
+        else if(currentOptionNum == 4){
+            rect.xMax = 200;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*(currentOptionNum-1);
+            rect.yMin = 60 + 25*(currentOptionNum-1);
+            Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+            Graphics_drawRectangle(&g_sContext,&rect);
+            Graphics_fillRectangle(&g_sContext,&rect);
+            rect.xMax = 315;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*currentOptionNum;
+            rect.yMin = 60 + 25*currentOptionNum;
+        }
+    }
+    else{
+        rect.xMax = 315;
+        rect.xMin = 8;
 
-    if(menuIndex != 3){
-        rect.yMax = 80 + 25*(currentOptionNum-1);
-        rect.yMin = 60 + 25*(currentOptionNum-1);
-    }
-    else{
-        rect.yMax = 105 + 25*(currentOptionNum-1);
-        rect.yMin = 85 + 25*(currentOptionNum-1);
-    }
-    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
-    Graphics_drawRectangle(&g_sContext,&rect);
-    Graphics_fillRectangle(&g_sContext,&rect);
-    if((menuIndex == 1 && currentOptionNum == 5) || (menuIndex == 4 && currentOptionNum == 3) || (menuIndex == 6 && currentOptionNum == 5)){
-        rect.xMax = 315;
-        rect.xMin = 8;
-        rect.yMax = 80;
-        rect.yMin = 60;
-    }
-    else if(menuIndex == 3){
-        if(currentOptionNum == 3){
+        if(menuIndex != 3){
+            rect.yMax = 80 + 25*(currentOptionNum-1);
+            rect.yMin = 60 + 25*(currentOptionNum-1);
+        }
+        else{
+            rect.yMax = 105 + 25*(currentOptionNum-1);
+            rect.yMin = 85 + 25*(currentOptionNum-1);
+        }
+        Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+        Graphics_drawRectangle(&g_sContext,&rect);
+        Graphics_fillRectangle(&g_sContext,&rect);
+        if((menuIndex == 1 && currentOptionNum == 5) || (menuIndex == 4 && currentOptionNum == 3) || (menuIndex == 6 && currentOptionNum == 6)){
             rect.xMax = 315;
             rect.xMin = 8;
-            rect.yMax = 105;
-            rect.yMin = 85;
+            rect.yMax = 80;
+            rect.yMin = 60;
         }
-        else
-        {
+        else if(menuIndex == 3){
+            if(currentOptionNum == 3){
+                rect.xMax = 315;
+                rect.xMin = 8;
+                rect.yMax = 105;
+                rect.yMin = 85;
+            }
+            else
+            {
+                rect.xMax = 315;
+                rect.xMin = 8;
+                rect.yMax = 105 + 25*currentOptionNum;
+                rect.yMin = 85 + 25*currentOptionNum;
+            }
+        }
+        else{
             rect.xMax = 315;
             rect.xMin = 8;
-            rect.yMax = 105 + 25*currentOptionNum;
-            rect.yMin = 85 + 25*currentOptionNum;
+            rect.yMax = 80 + 25*currentOptionNum;
+            rect.yMin = 60 + 25*currentOptionNum;
         }
     }
-    else{
-        rect.xMax = 315;
-        rect.xMin = 8;
-        rect.yMax = 80 + 25*currentOptionNum;
-        rect.yMin = 60 + 25*currentOptionNum;
-    }
+
 
     Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
     Graphics_drawRectangle(&g_sContext,&rect);
@@ -823,63 +1204,118 @@ void nextOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int menuIn
         }
         else if(currentOptionNum == 4){
             Graphics_drawString(&g_sContext,"4.Temperature", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
-            Graphics_drawString(&g_sContext,"5.Return to Main Menu", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"5.Proceed with the experiment", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
         }
         else if(currentOptionNum == 5){
+            Graphics_drawString(&g_sContext,"5.Proceed with the experiment", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"6.Return to Main Menu", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
+        }
+        else if(currentOptionNum == 6){
             Graphics_drawString(&g_sContext,"1.Barometric Pressure", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
-            Graphics_drawString(&g_sContext,"5.Return to Main Menu", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"6.Return to Main Menu", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
         }
     }
 
 }
 void previousOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int menuIndex,int currentOptionNum,int rod_Length)
 {
-    rect.xMax = 315;
-    rect.xMin = 8;
-    if(menuIndex !=3){
-        rect.yMax = 80 + 25*(currentOptionNum-1);
-        rect.yMin = 60 + 25*(currentOptionNum-1);
-    }
-    else{
-        rect.yMax = 105 + 25*(currentOptionNum-1);
-        rect.yMin = 85 + 25*(currentOptionNum-1);
-    }
-    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
-    Graphics_drawRectangle(&g_sContext,&rect);
-    Graphics_fillRectangle(&g_sContext,&rect);
+    if(menuIndex == 6 && currentOptionNum > 2 && currentOptionNum < 6){
 
-    if((menuIndex == 1 && currentOptionNum == 1) || (menuIndex == 6 && currentOptionNum == 1)){
-        rect.xMax = 315;
-        rect.xMin = 8;
-        rect.yMax = 180;
-        rect.yMin = 160;
-    }
-    else if(menuIndex == 3){
-        if(currentOptionNum == 1){
+        if(currentOptionNum == 3){
+            rect.xMax = 200;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*(currentOptionNum-1);
+            rect.yMin = 60 + 25*(currentOptionNum-1);
+            Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+            Graphics_drawRectangle(&g_sContext,&rect);
+            Graphics_fillRectangle(&g_sContext,&rect);
             rect.xMax = 315;
             rect.xMin = 8;
-            rect.yMax = 155;
-            rect.yMin = 135;
+            rect.yMax = 80 + 25*(currentOptionNum-2);
+            rect.yMin = 60 + 25*(currentOptionNum-2);
         }
-        else
-        {
+        else if(currentOptionNum == 4){
+            rect.xMax = 200;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*(currentOptionNum-1);
+            rect.yMin = 60 + 25*(currentOptionNum-1);
+            Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+            Graphics_drawRectangle(&g_sContext,&rect);
+            Graphics_fillRectangle(&g_sContext,&rect);
+            rect.xMax = 200;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*(currentOptionNum-2);
+            rect.yMin = 60 + 25*(currentOptionNum-2);
+        }
+        else if(currentOptionNum == 5){
             rect.xMax = 315;
             rect.xMin = 8;
-            rect.yMax = 105 + 25*(currentOptionNum-2);
-            rect.yMin = 85 + 25*(currentOptionNum-2);
+            rect.yMax = 80 + 25*(currentOptionNum-1);
+            rect.yMin = 60 + 25*(currentOptionNum-1);
+            Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+            Graphics_drawRectangle(&g_sContext,&rect);
+            Graphics_fillRectangle(&g_sContext,&rect);
+            rect.xMax = 200;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*(currentOptionNum-2);
+            rect.yMin = 60 + 25*(currentOptionNum-2);
         }
     }
-    else if(menuIndex == 4 && currentOptionNum == 1){
+    else
+    {
         rect.xMax = 315;
         rect.xMin = 8;
-        rect.yMax = 130;
-        rect.yMin = 110;
-    }
-    else{
-        rect.xMax = 315;
-        rect.xMin = 8;
-        rect.yMax = 80 + 25*(currentOptionNum-2);
-        rect.yMin = 60 + 25*(currentOptionNum-2);
+        if(menuIndex !=3){
+            rect.yMax = 80 + 25*(currentOptionNum-1);
+            rect.yMin = 60 + 25*(currentOptionNum-1);
+        }
+        else{
+            rect.yMax = 105 + 25*(currentOptionNum-1);
+            rect.yMin = 85 + 25*(currentOptionNum-1);
+        }
+        Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+        Graphics_drawRectangle(&g_sContext,&rect);
+        Graphics_fillRectangle(&g_sContext,&rect);
+
+        if((menuIndex == 1 && currentOptionNum == 1)){
+            rect.xMax = 315;
+            rect.xMin = 8;
+            rect.yMax = 180;
+            rect.yMin = 160;
+        }
+        else if(menuIndex == 3){
+            if(currentOptionNum == 1){
+                rect.xMax = 315;
+                rect.xMin = 8;
+                rect.yMax = 155;
+                rect.yMin = 135;
+            }
+            else
+            {
+                rect.xMax = 315;
+                rect.xMin = 8;
+                rect.yMax = 105 + 25*(currentOptionNum-2);
+                rect.yMin = 85 + 25*(currentOptionNum-2);
+            }
+        }
+        else if(menuIndex == 4 && currentOptionNum == 1){
+            rect.xMax = 315;
+            rect.xMin = 8;
+            rect.yMax = 130;
+            rect.yMin = 110;
+        }
+        else if(menuIndex == 6 && currentOptionNum == 1){
+            rect.xMax = 315;
+            rect.xMin = 8;
+            rect.yMax = 205;
+            rect.yMin = 185;
+        }
+        else{
+            rect.xMax = 315;
+            rect.xMin = 8;
+            rect.yMax = 80 + 25*(currentOptionNum-2);
+            rect.yMin = 60 + 25*(currentOptionNum-2);
+        }
     }
     Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
     Graphics_drawRectangle(&g_sContext,&rect);
@@ -948,7 +1384,7 @@ void previousOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int me
     if(menuIndex == 6){
         if(currentOptionNum == 1){
             Graphics_drawString(&g_sContext,"1.Barometric Pressure", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
-            Graphics_drawString(&g_sContext,"5.Return to Main Menu", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"6.Return to Main Menu", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
         }
         else if(currentOptionNum == 2){
             Graphics_drawString(&g_sContext,"1.Barometric Pressure", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
@@ -964,7 +1400,11 @@ void previousOption(Graphics_Context g_sContext, Graphics_Rectangle rect, int me
         }
         else if(currentOptionNum == 5){
             Graphics_drawString(&g_sContext,"4.Temperature", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
-            Graphics_drawString(&g_sContext,"5.Return to Main Menu", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"5.Proceed with the experiment", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+        }
+        else if(currentOptionNum == 6){
+            Graphics_drawString(&g_sContext,"5.Proceed with the experiment", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+            Graphics_drawString(&g_sContext,"6.Return to Main Menu", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
         }
     }
 

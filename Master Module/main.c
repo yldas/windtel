@@ -31,7 +31,11 @@ int on_off = 1;
 int potentiometerStep = 0;
 char rodLength[6];
 int rod_Length = 0;
-char selectedSensors[48];
+int seconds = 5;
+int selectedPressureSensors[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int selectedWindForces[7] = {0,0,0,0,0,0,0};
+int selectedTempHumd[2] ={0,0};
+
 /* I2C Master Configuration Parameter */
 const eUSCI_I2C_MasterConfig i2cConfig =
 {
@@ -150,13 +154,19 @@ void PORT5_IRQHandler(void){
             else if(menuIndex == 6){
                 nextOption(g_sContext, rect,menuIndex,cursor,rod_Length);
                 cursor++;
-                if(cursor == 6)
+                if(cursor == 7)
                     cursor = 1;
             }
             else if(menuIndex == 7 || menuIndex == 8){
-                nextSensor(g_sContext, rect,menuIndex,selectedSensors,cursor);
+                nextSensor(g_sContext, rect,menuIndex,cursor);
                 cursor++;
                 if(cursor == 12)
+                    cursor = 1;
+            }
+            else if(menuIndex == 9){
+                nextForce(g_sContext, rect,menuIndex,cursor);
+                cursor++;
+                if(cursor == 8)
                     cursor = 1;
             }
         }
@@ -185,13 +195,19 @@ void PORT5_IRQHandler(void){
             previousOption(g_sContext, rect,menuIndex,cursor,rod_Length);
             cursor--;
             if(cursor == 0)
-                cursor = 5;
+                cursor = 6;
         }
         else if(menuIndex == 7 || menuIndex == 8){
-            previousSensor(g_sContext, rect,menuIndex,selectedSensors,cursor);
+            previousSensor(g_sContext, rect,menuIndex,cursor);
             cursor--;
             if(cursor == 0)
                 cursor = 11;
+        }
+        else if(menuIndex == 9){
+            previousForce(g_sContext, rect,menuIndex,cursor);
+            cursor--;
+            if(cursor == 0)
+                cursor = 7;
         }
     }
 
@@ -225,6 +241,10 @@ void PORT5_IRQHandler(void){
                 drawParameterMenu(g_sContext,rect);
                 menuIndex = 6;
                 cursor = 1;
+                int i = 0;
+                for(i; i<2; i++)
+                    if(selectedTempHumd[i])
+                        selectTempHumid(g_sContext, rect, i+3);
             }
             if(cursor == 3){
                 drawMainMenu(g_sContext,rect);
@@ -264,78 +284,198 @@ void PORT5_IRQHandler(void){
                 drawPressureMenu(g_sContext,rect);
                 menuIndex = 7;
                 cursor = 1;
-            }
-            if(cursor == 2){
+                int i = 1;
+                for(i; i<= 9; i++)
+                    if(selectedPressureSensors[i])
+                        selectSensor(g_sContext, rect, i);
 
             }
+            if(cursor == 2){
+                drawForceMenu(g_sContext,rect);
+                menuIndex = 9;
+                cursor = 1;
+                int i = 0;
+                for(i; i< 7; i++)
+                    if(selectedWindForces[i])
+                        selectForce(g_sContext, rect, i);
+            }
+            if(cursor == 3){
+                if(selectedTempHumd[0]){
+                    deselectTempHumid(g_sContext, rect, cursor);
+                    selectedTempHumd[0] = 0;
+                }
+
+                else{
+                    selectTempHumid(g_sContext, rect, cursor);
+                    selectedTempHumd[0] = 1;
+                }
+            }
+            if(cursor == 4){
+                if(selectedTempHumd[1]){
+                    deselectTempHumid(g_sContext, rect, cursor);
+                    selectedTempHumd[1] = 0;
+                }
+
+                else{
+                    selectTempHumid(g_sContext, rect, cursor);
+                    selectedTempHumd[1] = 1;
+                }
+            }
             if(cursor == 5){
+                drawExperimentDurationMenu(g_sContext,rect);
+                menuIndex = 10;
+                cursor = 1;
+            }
+            if(cursor == 6){
                 drawMainMenu(g_sContext,rect);
                 menuIndex = 1;
                 cursor = 1;
             }
         }
         else if(menuIndex == 7){
-            if(cursor > 0 && cursor < 10){
-                selectSensor(g_sContext, rect, cursor);
+            if(cursor == 1){
+                if(selectedPressureSensors[cursor+10] == 1 || selectedPressureSensors[cursor] == 1){
+                    deselectSensor(g_sContext, rect, cursor);
+                    selectedPressureSensors[cursor] = 0;
+                    selectedPressureSensors[cursor+10] = 0;
+                }
+
+                else{
+                    selectSensor(g_sContext, rect, cursor);
+                    selectedPressureSensors[cursor] = 1;
+                    selectedPressureSensors[cursor+10] = 1;
+                }
+            }
+            else if(cursor > 1 && cursor < 10){
+                if(selectedPressureSensors[cursor] == 1){
+                    deselectSensor(g_sContext, rect, cursor);
+                    selectedPressureSensors[cursor] = 0;
+                }
+
+                else{
+                    selectSensor(g_sContext, rect, cursor);
+                    selectedPressureSensors[cursor] = 1;
+                }
+
             }
 
             if(cursor == 10){
                 drawMorePressureMenu(g_sContext,rect);
                 menuIndex = 8;
                 cursor = 1;
+                int i = 10;
+                for(i; i<= 19; i++)
+                    if(selectedPressureSensors[i])
+                        selectSensor(g_sContext, rect, i-10);
+
             }
             if(cursor == 11){
                 drawParameterMenu(g_sContext,rect);
                 menuIndex = 6;
                 cursor = 1;
+                int i = 0;
+                for(i; i<2; i++)
+                    if(selectedTempHumd[i])
+                        selectTempHumid(g_sContext, rect, i+3);
             }
         }
         else if(menuIndex == 8){
             if(cursor == 1){
-                //                selectSensor(g_sContext,rect,selectedSensors);
-                menuIndex = 7;
+                if(selectedPressureSensors[cursor+10] == 1 || selectedPressureSensors[cursor] == 1){
+                    deselectSensor(g_sContext, rect, cursor);
+                    selectedPressureSensors[cursor] = 0;
+                    selectedPressureSensors[cursor+10] = 0;
+                }
+
+                else{
+                    selectSensor(g_sContext, rect, cursor);
+                    selectedPressureSensors[cursor] = 1;
+                    selectedPressureSensors[cursor+10] = 1;
+                }
+            }
+            else if(cursor > 1 && cursor < 10){
+                if(selectedPressureSensors[cursor+10] == 1){
+                    deselectSensor(g_sContext, rect, cursor);
+                    selectedPressureSensors[cursor+10] = 0;
+                }
+
+                else{
+                    selectSensor(g_sContext, rect, cursor);
+                    selectedPressureSensors[cursor+10] = 1;
+                }
+
+            }
+            else if(cursor == 10){
+
+            }
+            else if(cursor == 11){
+                drawParameterMenu(g_sContext,rect);
+                menuIndex = 6;
+                int i = 0;
                 cursor = 1;
+                for(i; i<2; i++)
+                    if(selectedTempHumd[i])
+                        selectTempHumid(g_sContext, rect, i+3);
             }
-            if(cursor == 2){
+        }
+        else if(menuIndex == 9){
+            if(cursor > 0 && cursor < 7){
+                if(selectedWindForces[cursor]){
+                    deselectForce(g_sContext, rect, cursor);
+                    selectedWindForces[cursor] = 0;
+                }
+                else{
+                    selectForce(g_sContext, rect, cursor);
+                    selectedWindForces[cursor] = 1;
+                }
+            }
 
-            }
-            if(cursor == 3){
-
-            }
-            if(cursor == 4){
-
-            }
-            if(cursor == 5){
-
-            }
-            if(cursor == 6){
-
-            }
-            if(cursor == 7){
-
-            }
-            if(cursor == 8){
-
-            }
-            if(cursor == 9){
-
-            }
-            if(cursor == 10){
-            }
-            if(cursor == 11){
+            else if(cursor == 7){
                 drawParameterMenu(g_sContext,rect);
                 menuIndex = 6;
                 cursor = 1;
+                int i = 0;
+                for(i; i<2; i++)
+                    if(selectedTempHumd[i])
+                        selectTempHumid(g_sContext, rect, i+3);
+            }
+        }
+        else if(menuIndex == 10){
+            if(cursor == 1){
+                if(seconds<300){
+                    seconds++;
+                    updateTimeDuration(g_sContext,seconds,rect);
+                }
+            }
+            else if(cursor == 2){
+
+            }
+            else if(cursor == 3){
+                drawParameterMenu(g_sContext,rect);
+                menuIndex = 6;
+                cursor = 1;
+                int i = 0;
+                for(i; i<2; i++)
+                    if(selectedTempHumd[i])
+                        selectTempHumid(g_sContext, rect, i+3);
+            }
+            else if(cursor == 4){
+
             }
         }
     }
-
     if(P5->IFG & BIT7 && !on_off){
         if(menuIndex == 3){
             if(cursor == 1){
                 if(rod_Length>0)
                     rod_Length--;
                 updateRodLength(g_sContext,rod_Length,rect);
+            }
+        }
+        if(menuIndex == 10){
+            if(seconds>5){
+                seconds--;
+                updateTimeDuration(g_sContext,seconds,rect);
             }
         }
     }

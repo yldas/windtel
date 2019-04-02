@@ -9,7 +9,7 @@
 #ifndef WINDTEL_I2C_H_
 #define WINDTEL_I2C_H_
 
-void I2C_Init(const I2C_REGISTER,const I2C_CONFIG,const SLAVE_ADDRESS, const I2C_INT_REGISTER,uint8_t* RXData, const NUM_OF_REC_BYTES){
+void I2C_Init(const I2C_REGISTER,const I2C_CONFIG,const SLAVE_ADDRESS, const I2C_INT_REGISTER, uint8_t* RXData, const NUM_OF_REC_BYTES){
 
     memset(RXData, 0x00, NUM_OF_REC_BYTES);
     /* Initializing I2C Master to SMCLK at 100khz with no autostop */
