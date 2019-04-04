@@ -171,7 +171,7 @@ class ResearcherHandler:
 
     def updateExperimentInformationById(self, userid, experimentid, form):
         dao = ResearcherDAO()
-        if not dao.getAllExperimentsFromUserById(userid, experimentid):
+        if not dao.getAllExperimentsFromUserById(userid):
             return jsonify(Error="Experiment not found"), 404
         else:
             if len(form) != 4:
