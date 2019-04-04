@@ -43,15 +43,15 @@ class ResearcherDAO:
         return result
 
     def getAllExperimentsFromUserById(self, userid):
-        result = [1, 'Test Experiment', 'Data acquisition test', '00:00:35', '4/3/2019']
+        result = [[1, 'Test Experiment', 'Data acquisition test', '00:00:35', '4/3/2019']]
         return result
 
     def deleteAllExperimentsFromUserById(self, userid):
-        result = [1, 'Test Experiment', 'Data acquisition test', '00:00:35', '4/3/2019']
+        result = [[1, 'Test Experiment', 'Data acquisition test', '00:00:35', '4/3/2019']]
         return result
 
     def getExperimentFromUserById(self, userid, experimentid):
-        result = []
+        result = [1, 'Test Experiment', 'Data acquisition test', '00:00:35', '4/3/2019']
         return result
 
     def deleteExperimentFromUserById(self, userid, experimentid):
