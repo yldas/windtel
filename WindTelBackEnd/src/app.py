@@ -71,22 +71,22 @@ def getAllExperiments():
     return ExperimentHandler().getAllExperiments()
 
 #Get experiment by id or delete them
-@app.route('/WindTel/experiments/<int:experimentid>/', methods=['GET', 'DELETE'])
+@app.route('/WindTel/experiments/<int:experimentid>/', methods=['GET', 'DELETE', 'PUT'])
 def getExperimentInformationById(experimentid):
     if request.method == 'DELETE':
         return ExperimentHandler().deleteExperimentById(experimentid)
+    elif request.method == 'PUT':
+        return ExperimentHandler().updateExperimentInformationById(experimentid, request.json)
     else:
         return ExperimentHandler().getExperimentInformationById(experimentid)
 
 #Get measurements of an experiment by id, update it, or delete them
-@app.route('/WindTel/experiments/<int:experimentid>/measurements/', methods=['GET', 'DELETE', 'PUT'])
+@app.route('/WindTel/experiments/<int:experimentid>/measurements/', methods=['GET', 'DELETE'])
 def getMeasurementsFromExperimentById(experimentid):
     if request.method == 'DELETE':
         return ExperimentHandler().deleteAllMeasurementsFromExperimentById(experimentid)
-    elif request.method == 'PUT':
-        return ExperimentHandler().updateExperimentInformationById(experimentid)
     else:
-        return ExperimentHandler().getMeasurementsFromExperimentById(experimentid)
+        return ExperimentHandler().getAllMeasurementsFromExperimentById(experimentid)
 
 #Get all measurements obtained in the system
 @app.route('/WindTel/measurements/')
