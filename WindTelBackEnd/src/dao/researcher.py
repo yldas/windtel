@@ -29,3 +29,35 @@ class ResearcherDAO:
     def getAllUsers(self):
         result = []
         return result
+
+    def getUserInformationById(self, userid):
+        result = []
+        return [1, 'Kahlil', 'Fonseca', 'kahlil.fonseca@upr.edu', 'playstation123', 'Student', 'ICOM', 'UPRM', 'Cabo Rojo']
+
+    def updateUserInformationById(self, userid, rname, rlast_name, remail, rpassword, rvocation, rdepartment, rinstitution, rcity):
+        result = []
+        return result
+
+    def deleteUserById(self, userid):
+        result = []
+        return result
+
+    def getAllExperimentsFromUserById(self, userid):
+        result = [1, 'Test Experiment', 'Data acquisition test', '00:00:35', '4/3/2019']
+        return result
+
+    def deleteAllExperimentsFromUserById(self, userid):
+        result = [1, 'Test Experiment', 'Data acquisition test', '00:00:35', '4/3/2019']
+        return result
+
+    def getExperimentFromUserById(self, userid, experimentid):
+        result = []
+        return result
+
+    def deleteExperimentFromUserById(self, userid, experimentid):
+        result = []
+        return result
+
+    def updateExperimentInformationById(self, userid, experimentid):
+        result = []
+        return result
