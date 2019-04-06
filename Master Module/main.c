@@ -34,8 +34,13 @@ int rod_Length = 0;
 int seconds = 5;
 int selectedPressureSensors[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int selectedWindForces[7] = {0,0,0,0,0,0,0};
-int selectedTempHumd[2] ={0,0};
-bool balanceSelected, pressureSelected, tempSelected, humidSelected = false;
+int selectedSpeed_Temp[3] ={0,0,0};
+int pressureSample = 0;
+int forceSample = 0;
+int tempSample = 0;
+int humidSample = 0;
+
+bool balanceSelected, pressureSelected, tempSelected, humidSelected, speedSelected = false;
 /* I2C Master Configuration Parameter */
 const eUSCI_I2C_MasterConfig i2cConfig =
 {
@@ -154,7 +159,7 @@ void PORT5_IRQHandler(void){
             else if(menuIndex == 6){
                 nextOption(g_sContext, rect,menuIndex,cursor,rod_Length);
                 cursor++;
-                if(cursor == 7)
+                if(cursor == 8)
                     cursor = 1;
             }
             else if(menuIndex == 7 || menuIndex == 8){
@@ -176,9 +181,9 @@ void PORT5_IRQHandler(void){
                     cursor = 1;
             }
             else if(menuIndex == 11){
-                nextOption(g_sContext, rect,menuIndex,cursor,rod_Length);
+                nextSample(g_sContext, rect,menuIndex,cursor);
                 cursor++;
-                if(cursor == 8)
+                if(cursor == getMeasurmentsToSample()+3)
                     cursor = 1;
             }
         }
@@ -207,7 +212,7 @@ void PORT5_IRQHandler(void){
             previousOption(g_sContext, rect,menuIndex,cursor,rod_Length);
             cursor--;
             if(cursor == 0)
-                cursor = 6;
+                cursor = 7;
         }
         else if(menuIndex == 7 || menuIndex == 8){
             previousSensor(g_sContext, rect,menuIndex,cursor);
@@ -228,10 +233,10 @@ void PORT5_IRQHandler(void){
                 cursor = 4;
         }
         else if(menuIndex == 11){
-            previousOption(g_sContext, rect,menuIndex,cursor,rod_Length);
+            previousSample(g_sContext, rect,menuIndex,cursor);
             cursor--;
             if(cursor == 0)
-                cursor = 7;
+                cursor = getMeasurmentsToSample()+2;
         }
     }
 
@@ -266,8 +271,8 @@ void PORT5_IRQHandler(void){
                 menuIndex = 6;
                 cursor = 1;
                 int i = 0;
-                for(i; i<2; i++)
-                    if(selectedTempHumd[i])
+                for(i; i<3; i++)
+                    if(selectedSpeed_Temp[i])
                         selectTempHumid(g_sContext, rect, i+3);
             }
             if(cursor == 3){
@@ -324,37 +329,50 @@ void PORT5_IRQHandler(void){
                         selectForce(g_sContext, rect, i);
             }
             if(cursor == 3){
-                if(selectedTempHumd[0]){
+                if(selectedSpeed_Temp[0]){
                     deselectTempHumid(g_sContext, rect, cursor);
-                    selectedTempHumd[0] = 0;
+                    selectedSpeed_Temp[0] = 0;
                     tempSelected = false;
                 }
 
                 else{
                     selectTempHumid(g_sContext, rect, cursor);
-                    selectedTempHumd[0] = 1;
+                    selectedSpeed_Temp[0] = 1;
                     tempSelected = true;
                 }
             }
             if(cursor == 4){
-                if(selectedTempHumd[1]){
+                if(selectedSpeed_Temp[1]){
                     deselectTempHumid(g_sContext, rect, cursor);
-                    selectedTempHumd[1] = 0;
+                    selectedSpeed_Temp[1] = 0;
                     humidSelected = false;
                 }
 
                 else{
                     selectTempHumid(g_sContext, rect, cursor);
-                    selectedTempHumd[1] = 1;
+                    selectedSpeed_Temp[1] = 1;
                     humidSelected = true;
                 }
             }
             if(cursor == 5){
+                if(selectedSpeed_Temp[2]){
+                    deselectTempHumid(g_sContext, rect, cursor);
+                    selectedSpeed_Temp[2] = 0;
+                    speedSelected = false;
+                }
+
+                else{
+                    selectTempHumid(g_sContext, rect, cursor);
+                    selectedSpeed_Temp[2] = 1;
+                    speedSelected = true;
+                }
+            }
+            if(cursor == 6){
                 drawExperimentDurationMenu(g_sContext,rect);
                 menuIndex = 10;
                 cursor = 1;
             }
-            if(cursor == 6){
+            if(cursor == 7){
                 drawMainMenu(g_sContext,rect);
                 menuIndex = 1;
                 cursor = 1;
@@ -406,8 +424,8 @@ void PORT5_IRQHandler(void){
                 menuIndex = 6;
                 cursor = 1;
                 int i = 0;
-                for(i; i<2; i++)
-                    if(selectedTempHumd[i])
+                for(i; i<3; i++)
+                    if(selectedSpeed_Temp[i])
                         selectTempHumid(g_sContext, rect, i+3);
             }
         }
@@ -449,8 +467,8 @@ void PORT5_IRQHandler(void){
                 menuIndex = 6;
                 int i = 0;
                 cursor = 1;
-                for(i; i<2; i++)
-                    if(selectedTempHumd[i])
+                for(i; i<3; i++)
+                    if(selectedSpeed_Temp[i])
                         selectTempHumid(g_sContext, rect, i+3);
             }
         }
@@ -473,8 +491,8 @@ void PORT5_IRQHandler(void){
                 menuIndex = 6;
                 cursor = 1;
                 int i = 0;
-                for(i; i<2; i++)
-                    if(selectedTempHumd[i])
+                for(i; i<3; i++)
+                    if(selectedSpeed_Temp[i])
                         selectTempHumid(g_sContext, rect, i+3);
             }
         }
@@ -484,9 +502,16 @@ void PORT5_IRQHandler(void){
                 updateTimeDuration(g_sContext,seconds,rect);
             }
             else if(cursor == 2){
-                drawSampleMenu(g_sContext,rect);
-                menuIndex = 11;
-                cursor = 1;
+                if(getMeasurmentsToSample() == 0){
+                    setMeasurmentsToSample(pressureSelected,balanceSelected, tempSelected, humidSelected, speedSelected);
+                    displayNeedMeasurmentMessage();
+                }
+                else{
+                    setMeasurmentsToSample(pressureSelected,balanceSelected, tempSelected, humidSelected, speedSelected);
+                    drawSampleMenu(g_sContext,rect, pressureSelected, balanceSelected, tempSelected, humidSelected, speedSelected);
+                    menuIndex = 11;
+                    cursor = 1;
+                }
                 //                MAP_Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
                 //                /* Enabling MASTER interrupts */
                 //                MAP_Interrupt_enableMaster();
@@ -496,8 +521,8 @@ void PORT5_IRQHandler(void){
                 menuIndex = 6;
                 cursor = 1;
                 int i = 0;
-                for(i; i<2; i++)
-                    if(selectedTempHumd[i])
+                for(i; i<3; i++)
+                    if(selectedSpeed_Temp[i])
                         selectTempHumid(g_sContext, rect, i+3);
             }
             else if(cursor == 4){
@@ -513,23 +538,9 @@ void PORT5_IRQHandler(void){
             else if(cursor == 2){
 
             }
-            else if(cursor == 3){
-
-            }
-            else if(cursor == 4){
-
-            }
-            else if(cursor == 5){
-
-            }
-            else if(cursor == 6){
+            else if(cursor == getMeasurmentsToSample()+2){
                 drawExperimentDurationMenu(g_sContext,rect);
                 menuIndex = 10;
-                cursor = 1;
-            }
-            else if(cursor == 7){
-                drawMainMenu(g_sContext,rect);
-                menuIndex = 1;
                 cursor = 1;
             }
         }
@@ -537,7 +548,7 @@ void PORT5_IRQHandler(void){
     if(P5->IFG & BIT7 && !on_off){
         if(menuIndex == 3){
             if(cursor == 1){
-                if(rod_Length>0)
+                if(rod_Length>1)
                     rod_Length--;
                 updateRodLength(g_sContext,rod_Length,rect);
             }
