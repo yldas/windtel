@@ -12,7 +12,8 @@
 #define TIMER_PERIOD    11718
 
 /* Slave Address for I2C Slave */
-#define SLAVE_ADDRESS_PRESSURE       0x000B
+#define SLAVE_ADDRESS_BALANCE       0x000A
+#define SLAVE_ADDRESS_PRESSURE      0x000B
 #define SLAVE_ADDRESS_DYNAMIC       0x000C
 #define NUM_OF_REC_BYTES_DYNAMIC    11
 
@@ -30,7 +31,7 @@ int menuIndex = 1;
 int on_off = 1;
 int potentiometerStep = 0;
 char rodLength[6];
-int rod_Length = 0;
+int rod_Length = 1;
 int seconds = 5;
 int selectedPressureSensors[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int selectedWindForces[7] = {0,0,0,0,0,0,0};
@@ -39,6 +40,7 @@ int pressureSample = 0;
 int forceSample = 0;
 int tempSample = 0;
 int humidSample = 0;
+int stopSignal = 0;
 
 bool balanceSelected, pressureSelected, tempSelected, humidSelected, speedSelected = false;
 /* I2C Master Configuration Parameter */
@@ -120,6 +122,7 @@ void main(void){
         __no_operation();
         __enable_irq();
         NVIC->ISER[1] = 1 << ((PORT5_IRQn) & 31);
+
     }
 }
 
@@ -135,7 +138,7 @@ void PORT5_IRQHandler(void){
             on_off = 1;
         }
     }
-    //Right Button
+    //Up Button
     if(!on_off){
         if(P5->IFG & BIT5){
             if(menuIndex == 1){
@@ -181,14 +184,20 @@ void PORT5_IRQHandler(void){
                     cursor = 1;
             }
             else if(menuIndex == 11){
-                nextSample(g_sContext, rect,menuIndex,cursor);
+                nextSample(g_sContext,rect,menuIndex,cursor);
                 cursor++;
                 if(cursor == getMeasurmentsToSample()+3)
                     cursor = 1;
             }
+            else if(menuIndex == 12){
+                nextConfirmation(g_sContext,rect,cursor);
+                cursor++;
+                if(cursor == 5)
+                    cursor = 1;
+            }
         }
     }
-    //Left Button
+    //Down Button
     if(P5->IFG & BIT2 && !on_off){
         if(menuIndex == 1){
             previousOption(g_sContext, rect, menuIndex,cursor,rod_Length);
@@ -237,6 +246,12 @@ void PORT5_IRQHandler(void){
             cursor--;
             if(cursor == 0)
                 cursor = getMeasurmentsToSample()+2;
+        }
+        else if(menuIndex == 12){
+            previousConfirmation(g_sContext,rect,cursor);
+            cursor--;
+            if(cursor == 0)
+                cursor = 4;
         }
     }
 
@@ -381,16 +396,29 @@ void PORT5_IRQHandler(void){
         else if(menuIndex == 7){
             if(cursor == 1){
                 if(selectedPressureSensors[cursor+10] == 1 || selectedPressureSensors[cursor] == 1){
-                    deselectSensor(g_sContext, rect, cursor);
-                    selectedPressureSensors[cursor] = 0;
-                    selectedPressureSensors[cursor+10] = 0;
+                    int z = 1;
+                    for(z = 1; z < 10;z++){
+                        deselectSensor(g_sContext, rect, z);
+                        selectedPressureSensors[z] = 0;
+                    }
+                    for(z = 1; z < 10;z++){
+                        deselectSensor(g_sContext, rect, z);
+                        selectedPressureSensors[z+10] = 0;
+                    }
+
                     pressureSelected = false;
                 }
 
                 else{
-                    selectSensor(g_sContext, rect, cursor);
-                    selectedPressureSensors[cursor] = 1;
-                    selectedPressureSensors[cursor+10] = 1;
+                    int z = 1;
+                    for(z = 1; z < 10;z++){
+                        selectSensor(g_sContext, rect, z);
+                        selectedPressureSensors[z] = 1;
+                    }
+                    for(z = 1; z < 10;z++){
+                        selectSensor(g_sContext, rect, z);
+                        selectedPressureSensors[z+10] = 1;
+                    }
                     pressureSelected = true;
                 }
             }
@@ -432,16 +460,29 @@ void PORT5_IRQHandler(void){
         else if(menuIndex == 8){
             if(cursor == 1){
                 if(selectedPressureSensors[cursor+10] == 1 || selectedPressureSensors[cursor] == 1){
-                    deselectSensor(g_sContext, rect, cursor);
-                    selectedPressureSensors[cursor] = 0;
-                    selectedPressureSensors[cursor+10] = 0;
+                    int z = 1;
+                    for(z = 1; z < 10;z++){
+                        deselectSensor(g_sContext, rect, z);
+                        selectedPressureSensors[z] = 0;
+                    }
+                    for(z = 1; z < 10;z++){
+                        deselectSensor(g_sContext, rect, z);
+                        selectedPressureSensors[z+10] = 0;
+                    }
+
                     pressureSelected = false;
                 }
 
                 else{
-                    selectSensor(g_sContext, rect, cursor);
-                    selectedPressureSensors[cursor] = 1;
-                    selectedPressureSensors[cursor+10] = 1;
+                    int z = 1;
+                    for(z = 1; z < 10;z++){
+                        selectSensor(g_sContext, rect, z);
+                        selectedPressureSensors[z] = 1;
+                    }
+                    for(z = 1; z < 10;z++){
+                        selectSensor(g_sContext, rect, z);
+                        selectedPressureSensors[z+10] = 1;
+                    }
                     pressureSelected = true;
                 }
             }
@@ -473,7 +514,25 @@ void PORT5_IRQHandler(void){
             }
         }
         else if(menuIndex == 9){
-            if(cursor > 0 && cursor < 7){
+            if(cursor == 1){
+                if(selectedWindForces[cursor] == 1){
+                    int z = 1;
+                    for(z = 1; z < 7;z++){
+                        deselectForce(g_sContext, rect, z);
+                        selectedWindForces[z] = 0;
+                    }
+                    balanceSelected = false;
+                }
+                else{
+                    int z = 1;
+                    for(z = 1; z < 7;z++){
+                        selectForce(g_sContext, rect, z);
+                        selectedWindForces[z] = 1;
+                    }
+                    balanceSelected = true;
+                }
+            }
+            else if(cursor > 1 && cursor < 7){
                 if(selectedWindForces[cursor]){
                     deselectForce(g_sContext, rect, cursor);
                     selectedWindForces[cursor] = 0;
@@ -502,12 +561,11 @@ void PORT5_IRQHandler(void){
                 updateTimeDuration(g_sContext,seconds,rect);
             }
             else if(cursor == 2){
+                setMeasurmentsToSample(pressureSelected,balanceSelected, tempSelected, humidSelected, speedSelected);
                 if(getMeasurmentsToSample() == 0){
-                    setMeasurmentsToSample(pressureSelected,balanceSelected, tempSelected, humidSelected, speedSelected);
                     displayNeedMeasurmentMessage();
                 }
                 else{
-                    setMeasurmentsToSample(pressureSelected,balanceSelected, tempSelected, humidSelected, speedSelected);
                     drawSampleMenu(g_sContext,rect, pressureSelected, balanceSelected, tempSelected, humidSelected, speedSelected);
                     menuIndex = 11;
                     cursor = 1;
@@ -532,15 +590,59 @@ void PORT5_IRQHandler(void){
             }
         }
         else if(menuIndex == 11){
-            if(cursor == 1){
-
-            }
-            else if(cursor == 2){
-
-            }
-            else if(cursor == getMeasurmentsToSample()+2){
+            if(cursor == getMeasurmentsToSample()+2){
                 drawExperimentDurationMenu(g_sContext,rect);
                 menuIndex = 10;
+                cursor = 1;
+                resetSampleCounters();
+            }
+            else if(cursor == getMeasurmentsToSample()+1){
+                drawExperimentConfirmationMenu(g_sContext,rect);
+                menuIndex = 12;
+                cursor = 1;
+            }
+            else if(cursor <= getMeasurmentsToSample()){
+                increaseSampleSize(g_sContext, seconds, cursor);
+            }
+        }
+
+        else if(menuIndex == 12){
+            if(cursor == 1){
+                increaseExpRepetitions(seconds);
+            }
+            else if(cursor == 2){
+                StartExperimentMessage(g_sContext,rect);
+                int secondsPassed = (numberOfExperiments+1)*seconds;
+                int totalExperimentDuration = secondsPassed;
+                while(secondsPassed != 0 && !stopSignal){
+                    if(P5->IN & BIT6){
+                        secondsPassed--;
+                        Delay(1000);
+                        updateAcquisitionTime(g_sContext,totalExperimentDuration-secondsPassed);
+                    }
+                    else
+                        stopSignal = 1;
+                }
+
+                if(stopSignal){
+                    drawExperimentConfirmationMenu(g_sContext,rect);
+                    cursor = 1;
+                    menuIndex = 12;
+                }
+                else
+                    drawAcquiredMesurementsMenu(g_sContext,rect);
+
+                stopSignal = 0;
+
+            }
+            else if(cursor == 3){
+                drawSampleMenu(g_sContext,rect, pressureSelected, balanceSelected, tempSelected, humidSelected, speedSelected);
+                menuIndex = 11;
+                cursor = 1;
+            }
+            else if(cursor == 4){
+                drawMainMenu(g_sContext,rect);
+                menuIndex = 1;
                 cursor = 1;
             }
         }
@@ -558,6 +660,12 @@ void PORT5_IRQHandler(void){
                 seconds--;
                 updateTimeDuration(g_sContext,seconds,rect);
             }
+        }
+        if(menuIndex == 11){
+            decrementSampleSize(g_sContext,cursor);
+        }
+        if(menuIndex == 12){
+            decreaseExpRepetitions(seconds);
         }
     }
 
