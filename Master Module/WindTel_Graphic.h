@@ -40,6 +40,12 @@ char decimalChar1 = '0';
 char decimalChar2 = '0';
 char *firstOption;
 char *lastOption;
+
+char *pressurePointer;
+char *balancePointer;
+char *temperaturePointer;
+char *relativeHumidityPointer;
+char *speedPointer;
 //Delay function takes 16 bit number (in milliseconds) and performs a delay
 void Delay(uint32_t msec){
     uint32_t i = 0;
@@ -142,6 +148,15 @@ void updateWindSpeed(Graphics_Context g_sContext,char *cSpeed){
     Graphics_drawString(&g_sContext,cSpeed, AUTO_STRING_LENGTH, 212,160,GRAPHICS_TRANSPARENT_TEXT);
 
 }
+void setAtmosphericPressure(char *pressureRXData){
+    pressurePointer = pressureRXData;
+}
+void setWindSpeed(char *windSpeedRXData){
+    speedPointer = windSpeedRXData;
+}
+void setBalanceForces(char *balanceForcesRXData){
+    balancePointer = balanceForcesRXData;
+}
 
 void updateTimeDuration(Graphics_Context g_sContext,int secs,Graphics_Rectangle rect){
     if(secs < 60){
@@ -205,6 +220,10 @@ void updateTimeDuration(Graphics_Context g_sContext,int secs,Graphics_Rectangle 
     int i = 0;
     for(i = 0; i<10;i++)
         totalExperimentDuration[i] = experimentDuration[i];
+}
+
+void clearNumberOfExperiments(){
+    numberOfExperiments = 0;
 }
 void drawPerformExperimentMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
     Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
@@ -588,16 +607,20 @@ void drawExperimentConfirmationMenu(Graphics_Context g_sContext, Graphics_Rectan
 
 void drawAcquiredMesurementsMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
     Graphics_clearDisplay(&g_sContext);
-    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
     Graphics_setFont(&g_sContext, &g_sFontCmss20b);
     Graphics_clearDisplay(&g_sContext);
-    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+
     Graphics_drawString(&g_sContext,"Wind Tunnel Telemetry System", AUTO_STRING_LENGTH, 8,10,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,"Acquired Measurements Menu", AUTO_STRING_LENGTH, 8,35,GRAPHICS_TRANSPARENT_TEXT);
-    Graphics_drawString(&g_sContext,"Pressure", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
-    Graphics_drawString(&g_sContext,"Force", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
-    Graphics_drawString(&g_sContext,"Temperature", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
-    Graphics_drawString(&g_sContext,"Relative Humidity", AUTO_STRING_LENGTH, 8,210,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Pressure: ", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,pressurePointer, AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Force: ", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,balancePointer, AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Wind Speed:", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,speedPointer, AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
+
 }
 
 void increaseExpRepetitions(int secs){
