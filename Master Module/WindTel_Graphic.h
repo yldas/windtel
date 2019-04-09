@@ -520,6 +520,20 @@ void StartExperimentMessage(Graphics_Context g_sContext, Graphics_Rectangle rect
     Graphics_drawString(&g_sContext,"   Acquiring Measurements...", AUTO_STRING_LENGTH, 8,210,GRAPHICS_TRANSPARENT_TEXT);
 }
 
+void ViewResultsMessage(Graphics_Context g_sContext, Graphics_Rectangle rect){
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    rect.xMax = 315;
+    rect.xMin = 8;
+    rect.yMax = 155;
+    rect.yMin = 135;
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+    Graphics_drawRectangle(&g_sContext,&rect);
+    Graphics_fillRectangle(&g_sContext,&rect);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+    Graphics_drawString(&g_sContext,"2. View Results", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+}
+
 void updateAcquisitionTime(Graphics_Context g_sContext,int secs){
     if(secs < 60){
         if(secs<10){
@@ -620,7 +634,6 @@ void drawAcquiredMesurementsMenu(Graphics_Context g_sContext, Graphics_Rectangle
     Graphics_drawString(&g_sContext,balancePointer, AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,"Wind Speed:", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,speedPointer, AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
-
 }
 
 void increaseExpRepetitions(int secs){

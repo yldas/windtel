@@ -16,7 +16,7 @@
 #define SLAVE_ADDRESS_PRESSURE      0x000B
 #define SLAVE_ADDRESS_DYNAMIC       0x000C
 #define NUM_OF_REC_BYTES_BALANCE     9
-#define NUM_OF_REC_BYTES_PRESSURE   11
+#define NUM_OF_REC_BYTES_PRESSURE   13
 #define NUM_OF_REC_BYTES_DYNAMIC    11
 
 /* Variables */
@@ -48,7 +48,7 @@ int pressureSample = 0;
 int forceSample = 0;
 int tempSample = 0;
 int humidSample = 0;
-int stopSignal = 0;
+int ExperimentStatus = 0;
 int secondsPassed = 0;
 int acquiredMeasurementDuration = 0;
 
@@ -106,20 +106,16 @@ void main(void){
     MAP_Timer_A_configureUpMode(TIMER_A1_BASE, &upConfig);
     MAP_Timer_A_configureUpMode(TIMER_A0_BASE, &AcquisitionTimeConfig);
 
-    P6->DIR |= BIT6+BIT7;
+    P3->DIR |= BIT6+BIT7;
+    P6->DIR |= BIT4+BIT5+BIT6+BIT7;
 
-//    Select I2C Pin Mode
+    //    Select I2C Pin Mode
     MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P3,
                                                    GPIO_PIN6 + GPIO_PIN7, GPIO_PRIMARY_MODULE_FUNCTION);
     MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P6,
                                                    GPIO_PIN4 + GPIO_PIN5, GPIO_PRIMARY_MODULE_FUNCTION);
     MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P6,
                                                    GPIO_PIN6 + GPIO_PIN7, GPIO_SECONDARY_MODULE_FUNCTION);
-//    I2C GPIO Pin Initialization
-    I2C_Init(EUSCI_B1_BASE,&i2cConfig,SLAVE_ADDRESS_BALANCE,INT_EUSCIB1,RXBalance, NUM_OF_REC_BYTES_BALANCE);
-    I2C_Init(EUSCI_B3_BASE,&i2cConfig,SLAVE_ADDRESS_PRESSURE,INT_EUSCIB3,RXPressure, NUM_OF_REC_BYTES_PRESSURE);
-    I2C_Init(EUSCI_B2_BASE,&i2cConfig,SLAVE_ADDRESS_DYNAMIC,INT_EUSCIB2,RXDynamic, NUM_OF_REC_BYTES_DYNAMIC);
-
 
     /* Enabling interrupts and starting the timer */
     MAP_Interrupt_enableSleepOnIsrExit();
@@ -626,16 +622,21 @@ void PORT5_IRQHandler(void){
                 increaseExpRepetitions(seconds);
             }
             else if(cursor == 2){
-                if(stopSignal){
+                if(ExperimentStatus == 1){
                     MAP_Timer_A_stopTimer(TIMER_A0_BASE);
                     drawExperimentConfirmationMenu(g_sContext,rect);
                     cursor = 1;
                     menuIndex = 12;
-                    stopSignal = 0;
+                    ExperimentStatus = 0;
                     clearNumberOfExperiments();
                 }
+                else if(ExperimentStatus == 2)
+                {
+                    drawAcquiredMesurementsMenu(g_sContext,rect);
+                    menuIndex = 13;
+                }
                 else{
-                    stopSignal = 1;
+                    ExperimentStatus = 1;
                     StartExperimentMessage(g_sContext,rect);
                     secondsPassed = (numberOfExperiments+1)*seconds;
                     acquiredMeasurementDuration = secondsPassed;
@@ -689,17 +690,19 @@ void TA0_0_IRQHandler(void)
         if((acquiredMeasurementDuration-secondsPassed) == 5){
             xferIndexDynamic = xferIndexBalance = xferIndexPressure = 0;
             I2C_Init(EUSCI_B1_BASE,&i2cConfig,SLAVE_ADDRESS_BALANCE,INT_EUSCIB1,RXBalance, NUM_OF_REC_BYTES_BALANCE);
+            I2C_Init(EUSCI_B2_BASE,&i2cConfig,SLAVE_ADDRESS_DYNAMIC,INT_EUSCIB2,RXDynamic, NUM_OF_REC_BYTES_DYNAMIC);
+            I2C_Init(EUSCI_B3_BASE,&i2cConfig,SLAVE_ADDRESS_PRESSURE,INT_EUSCIB3,RXPressure, NUM_OF_REC_BYTES_PRESSURE);
             I2C_StartCommunication(EUSCI_B1_BASE,TXBalance);
-//            I2C_Init(EUSCI_B2_BASE,&i2cConfig,SLAVE_ADDRESS_DYNAMIC,INT_EUSCIB2,RXDynamic, NUM_OF_REC_BYTES_DYNAMIC);
-//            I2C_StartCommunication(EUSCI_B2_BASE,TXDynamic);
-//            I2C_Init(EUSCI_B3_BASE,&i2cConfig,SLAVE_ADDRESS_PRESSURE,INT_EUSCIB3,RXPressure, NUM_OF_REC_BYTES_PRESSURE);
-//            I2C_StartCommunication(EUSCI_B3_BASE,TXPressure);
+            I2C_StartCommunication(EUSCI_B2_BASE,TXDynamic);
+            I2C_StartCommunication(EUSCI_B3_BASE,TXPressure);
         }
     }
     else{
+        ExperimentStatus = 2;
+        ViewResultsMessage(g_sContext,rect);
         MAP_Timer_A_stopTimer(TIMER_A0_BASE);
-        drawAcquiredMesurementsMenu(g_sContext,rect);
     }
+
 
     MAP_Timer_A_clearCaptureCompareInterrupt(TIMER_A0_BASE,TIMER_A_CAPTURECOMPARE_REGISTER_0);
 }
