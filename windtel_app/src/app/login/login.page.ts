@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { User } from '../user';
+import { UserService } from '../user.service';
 import { modelGroupProvider } from '@angular/forms/src/directives/ng_model_group';
 
 @Component({
@@ -12,7 +13,9 @@ export class LoginPage implements OnInit {
 
   model = new User(1, 'Misael', 'misael.valentin@upr.edu', '12345678', 'Researcher');
 
-  currentUser: User;
+  registered_users: User[];
+
+  public currentUser: User;
 
   submitted = false;
 
@@ -21,14 +24,23 @@ export class LoginPage implements OnInit {
     this.onSubmit();
   }
 
-  onSubmit() { this.submitted = true; }
+  onSubmit() {
+    this.submitted = true;
+    this.userService.setCurrentUser(this.currentUser);
+  }
 
   // TODO: Remove this when we're done
-  get diagnostic() { return JSON.stringify(this.currentUser); }
+  get diagnostic() { return JSON.stringify(this.userService.getCurrentUser()); }
 
-  constructor() { }
+  getUsers(): void {
+    this.userService.getUsers()
+        .subscribe(registered_users => this.registered_users = registered_users);
+  }
+
+  constructor(private userService: UserService) { }
 
   ngOnInit() {
+    this.getUsers();
   }
 
 }
