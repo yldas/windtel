@@ -1,47 +1,32 @@
 /*
  * Balance_Module.c
  *
- *  Created on: April 7, 2019
+ *  Created on: April 10, 2019
  *      Author: Nelson G. Rodriguez Ortiz
  */
 
 #include "msp.h"
 #include "math.h"
 
-unsigned int ADC_value14 = 0;    //Digital code of ADC channel 14 conversion
-unsigned int ADC_value13 = 0;   //Digital code of ADC channel 13 conversion
-unsigned int ADC_value12 = 0;   //Digital code of ADC channel 12 conversion
-unsigned int ADC_value11 = 0;   //Digital code of ADC channel 11 conversion
-unsigned int ADC_value10 = 0;   //Digital code of ADC channel 10 conversion
-unsigned int ADC_value9 = 0;    //Digital code of ADC channel 9 conversion
-unsigned int ADC_value8 = 0;    //Digital code of ADC channel 8 conversion
-unsigned int ADC_value7 = 0;    //Digital code of ADC channel 7 conversion
-unsigned int ADC_value6 = 0;    //Digital code of ADC channel 6 conversion
-unsigned int ADC_value5 = 0;    //Digital code of ADC channel 5 conversion
-unsigned int ADC_value4 = 0;    //Digital code of ADC channel 4 conversion
-unsigned int ADC_value3 = 0;    //Digital code of ADC channel 3 conversion
-unsigned int ADC_value2 = 0;    //Digital code of ADC channel 2 conversion
-unsigned int ADC_value1 = 0;    //Digital code of ADC channel 1 conversion
-unsigned int ADC_value0 = 0;    //Digital code of ADC channel 0 conversion
-float ADC_volt14 = 0.0;  //Analog voltage obtained in ADC channel 14
-float ADC_volt13 = 0.0; //Analog voltage obtained in ADC channel 13
-float ADC_volt12 = 0.0; //Analog voltage obtained in ADC channel 12
-float ADC_volt11 = 0.0; //Analog voltage obtained in ADC channel 11
-float ADC_volt10 = 0.0; //Analog voltage obtained in ADC channel 10
-float ADC_volt9 = 0.0;  //Analog voltage obtained in ADC channel 9
-float ADC_volt8 = 0.0;  //Analog voltage obtained in ADC channel 8
-float ADC_volt7 = 0.0;  //Analog voltage obtained in ADC channel 7
-float ADC_volt6 = 0.0;  //Analog voltage obtained in ADC channel 6
-float ADC_volt5 = 0.0;  //Analog voltage obtained in ADC channel 5
-float ADC_volt4 = 0.0;  //Analog voltage obtained in ADC channel 4
-float ADC_volt3 = 0.0;  //Analog voltage obtained in ADC channel 3
-float ADC_volt2 = 0.0;  //Analog voltage obtained in ADC channel 2
-float ADC_volt1 = 0.0;  //Analog voltage obtained in ADC channel 1
-float ADC_volt0 = 0.0;  //Analog voltage obtained in ADC channel 0
+unsigned int ADC_value13[4] = {0, 0, 0, 0};   //Digital code of ADC channel 13 conversion, four samples are acquired
+unsigned int ADC_value12[4] = {0, 0, 0, 0};   //Digital code of ADC channel 12 conversion, four samples are acquired
+unsigned int ADC_value11[4] = {0, 0, 0, 0};   //Digital code of ADC channel 11 conversion, four samples are acquired
+unsigned int ADC_value10[4] = {0, 0, 0, 0};   //Digital code of ADC channel 10 conversion, four samples are acquired
+unsigned int ADC_value9[4] = {0, 0, 0, 0};    //Digital code of ADC channel 9 conversion, four samples are acquired
+float ADC_volt13[4] = {0.0, 0.0, 0.0, 0.0}; //Analog voltages obtained in ADC channel 13
+float ADC_volt12[4] = {0.0, 0.0, 0.0, 0.0}; //Analog voltages obtained in ADC channel 12
+float ADC_volt11[4] = {0.0, 0.0, 0.0, 0.0}; //Analog voltages obtained in ADC channel 11
+float ADC_volt10[4] = {0.0, 0.0, 0.0, 0.0}; //Analog voltages obtained in ADC channel 10
+float ADC_volt9[4] = {0.0, 0.0, 0.0, 0.0};  //Analog voltages obtained in ADC channel 9
+float ADC_volt_dragf_sum = 0.0; //Analog voltage accumulator used to average drag front conditioned voltage
 float ADC_volt_dragf_ave = 0.0; //Average voltage obtained in drag front load cell
+float ADC_volt_dragb_sum = 0.0; //Analog voltage accumulator used to average drag back conditioned voltage
 float ADC_volt_dragb_ave = 0.0; //Average voltage obtained in drag back load cell
+float ADC_volt_right_sum = 0.0; //Analog voltage accumulator used to average right side conditioned voltage
 float ADC_volt_right_ave = 0.0; //Average voltage obtained in right side load cell
+float ADC_volt_left_sum = 0.0;  //Analog voltage accumulator used to average left side conditioned voltage
 float ADC_volt_left_ave = 0.0;  //Average voltage obtained in left side load cell
+float ADC_volt_lift_sum = 0.0;  //Analog voltage accumulator used to average lift conditioned voltage
 float ADC_volt_lift_ave = 0.0;  //Average voltage obtained in lift load cell
 float dragf_error_factor = 0.0; //Error factor in drag front load cell
 float dragb_error_factor = 0.0; //Error factor in drag back load cell
@@ -72,12 +57,12 @@ int results[20];  //results array stores the forces results. Even indexes are th
 //and odd indexes are the fractional part of the measurement
 int globalIndex = 0; //globalIndex is used to denote whether to put an '@' (decimal point) or not. If it's even,
 //an '@' shall be written to the Master Module or not otherwise.
-int conv = 0;   //Index used to iterate ADC conversions
-int n_dragf = 0;    //Rate of change between difference of drag front conditioned output voltage and 2.54V, and 0.01 used for error correction
-int n_dragb = 0;    //Rate of change between difference of drag back conditioned output voltage and 2.54V, and 0.01 used for error correction
-int n_right = 0;    //Rate of change between difference of right side conditioned output voltage and 2.54V, and 0.01 used for error correction
-int n_left = 0; //Rate of change between difference of left side conditioned output voltage and 2.54V, and 0.01 used for error correction
-int n_lift = 0; //Rate of change between difference of lift conditioned output voltage and 2.54V, and 0.01 used for error correction
+int i = 0; //Index used to accumulate analog voltages
+int n_dragf = 0;    //Rate of change between difference of drag front conditioned output voltage and 2.64V, and 0.01 used for error correction
+int n_dragb = 0;    //Rate of change between difference of drag back conditioned output voltage and 2.64V, and 0.01 used for error correction
+int n_right = 0;    //Rate of change between difference of right side conditioned output voltage and 2.64V, and 0.01 used for error correction
+int n_left = 0; //Rate of change between difference of left side conditioned output voltage and 2.64V, and 0.01 used for error correction
+int n_lift = 0; //Rate of change between difference of lift conditioned output voltage and 2.64V, and 0.01 used for error correction
 
 // Delay function
 void delay(int del){
@@ -236,43 +221,14 @@ void main(void)
     P4->SEL0 |= BIT4;   //Set pin 4.4 as Analog input A9
     P4->SEL1 |= BIT4;
 
-    P4->SEL0 |= BIT5;   //Set pin 4.5 as Analog input A8
-    P4->SEL1 |= BIT5;
-
-    P4->SEL0 |= BIT6;   //Set pin 4.6 as Analog input A7
-    P4->SEL1 |= BIT6;
-
-    P4->SEL0 |= BIT7;   //Set pin 4.7 as Analog input A6
-    P4->SEL1 |= BIT7;
 
     //PORT 5 Setup
-    P5->SEL0 |= BIT0;   //Set pin 5.0 as Analog input A5
-    P5->SEL1 |= BIT0;
-
-    P5->SEL0 |= BIT1;   //Set pin 5.1 as Analog input A4
-    P5->SEL1 |= BIT1;
-
-    P5->SEL0 |= BIT2;   //Set pin 5.2 as Analog input A3
-    P5->SEL1 |= BIT2;
-
-    P5->SEL0 |= BIT3;   //Set pin 5.3 as Analog input A2
-    P5->SEL1 |= BIT3;
-
-    P5->SEL0 |= BIT4;   //Set pin 5.4 as Analog input A1
-    P5->SEL1 |= BIT4;
-
-    P5->SEL0 |= BIT5;   //Set pin 5.5 as Analog input A0
-    P5->SEL1 |= BIT5;
-
     P5->SEL0 |= BIT6;   //Set pin 5.6 as external VeRef+
     P5->SEL1 |= BIT6;
 
     P5->SEL0 |= BIT7;   //Set pin 5.7 as external VeRef-
     P5->SEL1 |= BIT7;
 
-    //Port 6 Setup
-    P6->SEL0 |= BIT1;   //Set pin 6.1 as Analog input A14
-    P6->SEL1 |= BIT1;
 
     //ADC Configuration Setup
     ADC14->CTL0 &= ~ADC14_CTL0_ENC; //Disable Conversion before ADC setup
@@ -280,23 +236,28 @@ void main(void)
     ADC14->CTL0 |= ADC14_CTL0_SHT0__128 | ADC14_CTL0_SHP | ADC14_CTL0_MSC | ADC14_CTL0_ON;    //Sample and Hold time setup, SAMPCON sourced
     //from sampling timer, Multiple sample conversions and ADC ON
     ADC14->MCTL[0] |= ADC14_MCTLN_INCH_13 | ADC14_MCTLN_VRSEL_14; //Channel 13 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[1] |= ADC14_MCTLN_INCH_12 | ADC14_MCTLN_VRSEL_14; //Channel 12 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[2] |= ADC14_MCTLN_INCH_11 | ADC14_MCTLN_VRSEL_14;    //Channel 11 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[3] |= ADC14_MCTLN_INCH_10 | ADC14_MCTLN_VRSEL_14;    //Channel 10 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[4] |= ADC14_MCTLN_INCH_9 | ADC14_MCTLN_VRSEL_14;    //Channel 9 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[5] |= ADC14_MCTLN_INCH_8 | ADC14_MCTLN_VRSEL_14;    //Channel 8 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[6] |= ADC14_MCTLN_INCH_7 | ADC14_MCTLN_VRSEL_14;    //Channel 7 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[7] |= ADC14_MCTLN_INCH_6 | ADC14_MCTLN_VRSEL_14;    //Channel 6 selected  and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[8] |= ADC14_MCTLN_INCH_5 | ADC14_MCTLN_VRSEL_14;    //Channel 5 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[9] |= ADC14_MCTLN_INCH_4 | ADC14_MCTLN_VRSEL_14;    //Channel 4 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[10] |= ADC14_MCTLN_INCH_3 | ADC14_MCTLN_VRSEL_14;    //Channel 3 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[11] |= ADC14_MCTLN_INCH_2 | ADC14_MCTLN_VRSEL_14;    //Channel 2 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[12] |= ADC14_MCTLN_INCH_1 | ADC14_MCTLN_VRSEL_14;    //Channel 1 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[13] |= ADC14_MCTLN_INCH_0 | ADC14_MCTLN_VRSEL_14;    //Channel 0 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
-    ADC14->MCTL[14] |= ADC14_MCTLN_INCH_14 | ADC14_MCTLN_VRSEL_14 | ADC14_MCTLN_EOS;    //Channel 14 selected, End of sequence bit enable and
+    ADC14->MCTL[1] |= ADC14_MCTLN_INCH_13 | ADC14_MCTLN_VRSEL_14; //Channel 13 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[2] |= ADC14_MCTLN_INCH_13 | ADC14_MCTLN_VRSEL_14;    //Channel 13 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[3] |= ADC14_MCTLN_INCH_13 | ADC14_MCTLN_VRSEL_14;    //Channel 13 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[4] |= ADC14_MCTLN_INCH_12 | ADC14_MCTLN_VRSEL_14;    //Channel 12 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[5] |= ADC14_MCTLN_INCH_12 | ADC14_MCTLN_VRSEL_14;    //Channel 12 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[6] |= ADC14_MCTLN_INCH_12 | ADC14_MCTLN_VRSEL_14;    //Channel 12 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[7] |= ADC14_MCTLN_INCH_12 | ADC14_MCTLN_VRSEL_14;    //Channel 12 selected  and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[8] |= ADC14_MCTLN_INCH_11 | ADC14_MCTLN_VRSEL_14;    //Channel 11 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[9] |= ADC14_MCTLN_INCH_11 | ADC14_MCTLN_VRSEL_14;    //Channel 11 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[10] |= ADC14_MCTLN_INCH_11 | ADC14_MCTLN_VRSEL_14;    //Channel 11 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[11] |= ADC14_MCTLN_INCH_11 | ADC14_MCTLN_VRSEL_14;    //Channel 11 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[12] |= ADC14_MCTLN_INCH_10 | ADC14_MCTLN_VRSEL_14;    //Channel 10 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[13] |= ADC14_MCTLN_INCH_10 | ADC14_MCTLN_VRSEL_14;    //Channel 10 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[14] |= ADC14_MCTLN_INCH_10 | ADC14_MCTLN_VRSEL_14;  //Channel 10 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[15] |= ADC14_MCTLN_INCH_10 | ADC14_MCTLN_VRSEL_14;    //Channel 10 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[16] |= ADC14_MCTLN_INCH_9 | ADC14_MCTLN_VRSEL_14;    //Channel 9 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[17] |= ADC14_MCTLN_INCH_9 | ADC14_MCTLN_VRSEL_14;    //Channel 9 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[18] |= ADC14_MCTLN_INCH_9 | ADC14_MCTLN_VRSEL_14;    //Channel 9 selected and Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
+    ADC14->MCTL[19] |= ADC14_MCTLN_INCH_9 | ADC14_MCTLN_VRSEL_14 | ADC14_MCTLN_EOS;    //Channel 9 selected, End of sequence bit enable and
     //Vref+ = VeRef+ = 3.3V, Vref- = VeRef- = GND
     ADC14->CTL1 |= ADC14_CTL1_RES_3; //Resolution of ADC to 14 bits
-    ADC14->IER0 |= ADC14_IER0_IE0;   //ADC Interrupt Enable
+    ADC14->IER0 &= ~ADC14_IER0_IE0; //Disable ADC interrupt flag
 
     EUSCI_B0->CTLW0 = BIT0;                             //UCSWRST = 1b = software reset enabled
     EUSCI_B0->I2COA0 |= (0x0400 + 0x8000);              //General call response and own address enable
@@ -311,233 +272,240 @@ void main(void)
     EUSCI_B0->CTLW0 &= ~BIT0;                           //UCSWRST = 1b = software reset disabled
     EUSCI_B0->IE |= 0x000F;                             //Enable interrupts
 
-
-    //Performs 1000 ADC conversions before storing results
-    while(conv < 1000)
-    {
-        ADC14->CTL0 |= ADC14_CTL0_ENC | //Enable and Start Conversion
-                ADC14_CTL0_SC;
-        conv++;
-    }
-
-    ADC14->CTL0 &= ~ADC14_CTL0_ENC; //Disable Conversion
-
     __enable_irq();
 
-    NVIC->ISER[0] = 1 << ((ADC14_IRQn) & 31);
     NVIC->ISER[0] = 1 << (EUSCIB0_IRQn);
 
 }
 
-//ADC Module Interrupt Handler
-void ADC14_IRQHandler(void)
-{
-
-    if(ADC14->IFGR0 & 0x1)
-    {
-
-        //Drag front load cell conditioned output voltage acquisition
-        ADC_value13 = ADC14->MEM[0]; //Stores first conversion
-        ADC_volt13 = ((3.3*ADC_value13)/(16384.0));   //Obtains first sample of drag front load cell conditioned output voltage
-        ADC_value12 = ADC14->MEM[1];    //Stores second conversion
-        ADC_volt12 = ((3.3*ADC_value12)/(16384.0)); //Obtains second sample of drag front load cell conditioned output voltage
-        ADC_value11 = ADC14->MEM[2];    //Stores third conversion
-        ADC_volt11 = ((3.3*ADC_value11)/(16384.0)); //Obtains third sample of drag front load cell conditioned output voltage
-        ADC_volt_dragf_ave = (ADC_volt13 + ADC_volt12 + ADC_volt11)/3;    //Calculates the average of drag front load cell conditioned output
-        //voltage
-
-        //Analog voltage to drag front force conversion
-        if(ADC_volt_dragf_ave >= 2.50 && ADC_volt_dragf_ave < 2.535)    //No weight in load cell
-        {
-            drag_front_weight_lb = 0.00;
-        }
-        else if(ADC_volt_dragf_ave >= 2.545 && ADC_volt_dragf_ave <= 3.3)   //Weight in load cell
-        {
-            //Error correction factor when weight is greater or equal to 5lb
-            n_dragf = (ADC_volt_dragf_ave - 2.54)/0.01;
-            dragf_error_factor = 0.0004 + (n_dragf-1)*0.00015;
-
-            //Drag front weight conversion using INA333 gain, load cells Voltage (mV) vs Weight (lb) transfer characteristic and
-            //error correction factor
-            drag_front_weight_lb = (((ADC_volt_dragf_ave-2.50)/(1+100/1.4))+dragf_error_factor)*(45/0.01);
-        }
-        else if(ADC_volt_dragf_ave > 3.3) //When maximum weight (45lb) is exceeded
-        {
-            drag_front_weight_lb = 45.00;
-        }
-        else    //Used when weight in load cell is between 1lb and 5lb
-        {
-            //Drag front weight conversion using INA333 gain and load cells Voltage (mV) vs Weight (lb) transfer characteristic, no error
-            //correction factor is needed (error doesn't affect measurement accuracy)
-            drag_front_weight_lb = ((ADC_volt_dragf_ave-2.50)/(1+100/1.4))*(45/0.01);
-        }
-        drag_front_force_lb = drag_front_weight_lb*(L2/L1); //Calculates drag front force in lb
-        drag_front_weight_N = drag_front_weight_lb*4.45;   //Calculates drag front weight in N
-        drag_front_force_N = drag_front_force_lb*4.45;  //Calculates drag front force in N
-
-        //Drag back load cell conditioned output voltage acquisition
-        ADC_value10 = ADC14->MEM[3];    //Stores first conversion
-        ADC_volt10 = ((3.3*ADC_value10)/(16384.0)); //Obtains first sample of drag back load cell conditioned output voltage
-        ADC_value9 = ADC14->MEM[4];    //Stores second conversion
-        ADC_volt9 = ((3.3*ADC_value9)/(16384.0)); //Obtains second sample of drag back load cell conditioned output voltage
-        ADC_value8 = ADC14->MEM[5];    //Stores third conversion
-        ADC_volt8 = ((3.3*ADC_value8)/(16384.0)); //Obtains third sample of drag back load cell conditioned output voltage
-        ADC_volt_dragb_ave = (ADC_volt10 + ADC_volt9 + ADC_volt8)/3;    //Calculates the average of drag back load cell conditioned output
-        //voltage
-
-        //Analog voltage to drag back force conversion
-        if(ADC_volt_dragb_ave >= 2.50 && ADC_volt_dragb_ave < 2.535)    //No weight in load cell
-        {
-            drag_back_weight_lb = 0.00;
-        }
-        else if(ADC_volt_dragb_ave >= 2.545 && ADC_volt_dragb_ave <= 3.3)   //Weight in load cell
-        {
-            //Error correction factor when weight is greater or equal to 5lb
-            n_dragb = (ADC_volt_dragb_ave - 2.54)/0.01;
-            dragb_error_factor = 0.0004 + (n_dragb-1)*0.00015;
-
-            //Drag back weight conversion using INA333 gain, load cells Voltage (mV) vs Weight (lb) transfer characteristic and
-            //error correction factor
-            drag_back_weight_lb = (((ADC_volt_dragb_ave-2.50)/(1+100/1.4))+dragb_error_factor)*(45/0.01);
-        }
-        else if(ADC_volt_dragb_ave > 3.3) //When maximum weight (45lb) is exceeded
-        {
-            drag_back_weight_lb = 45.00;
-        }
-        else    //Used when weight in load cell is between 1lb and 5lb
-        {
-            //Drag back weight conversion using INA333 gain and load cells Voltage (mV) vs Weight (lb) transfer characteristic, no error
-            //correction factor is needed (error doesn't affect measurement accuracy)
-            drag_back_weight_lb = ((ADC_volt_dragb_ave-2.50)/(1+100/1.4))*(45/0.01);
-        }
-        drag_back_force_lb = drag_back_weight_lb*(L2/L1);   //Calculates drag back force in lb
-        drag_back_weight_N = drag_back_weight_lb*4.45;   //Calculates drag back weight in N
-        drag_back_force_N = drag_back_force_lb*4.45;    //Calculates drag back force in N
-
-        //Right side load cell conditioned output voltage acquisition
-        ADC_value7 = ADC14->MEM[6];    //Stores first conversion
-        ADC_volt7 = ((3.3*ADC_value11)/(16384.0)); //Obtains first sample of right side load cell conditioned output voltage
-        ADC_value6 = ADC14->MEM[7];    //Stores second conversion
-        ADC_volt6 = ((3.3*ADC_value6)/(16384.0)); //Obtains second sample of right side load cell conditioned output voltage
-        ADC_value5 = ADC14->MEM[8];    //Stores third conversion
-        ADC_volt5 = ((3.3*ADC_value5)/(16384.0)); //Obtains third sample of right side load cell conditioned output voltage
-        ADC_volt_right_ave = (ADC_volt7 + ADC_volt6 + ADC_volt5)/3;    //Calculates the average of right side load cell conditioned output
-        //voltage
-
-        //Analog voltage to right side force conversion
-        if(ADC_volt_right_ave >= 2.50 && ADC_volt_right_ave < 2.535)    //No weight in load cell
-        {
-            right_side_weight_lb = 0.00;
-        }
-        else if(ADC_volt_right_ave >= 2.545 && ADC_volt_right_ave <= 3.3)   //Weight in load cell
-        {
-            //Error correction factor when weight is greater or equal to 5lb
-            n_right = (ADC_volt_right_ave - 2.54)/0.01;
-            right_error_factor = 0.0004 + (n_right-1)*0.00015;
-
-            //Right side force conversion using INA333 gain, load cells Voltage (mV) vs Weight (lb) transfer characteristic and
-            //error correction factor
-            right_side_weight_lb = (((ADC_volt_right_ave-2.50)/(1+100/1.4))+right_error_factor)*(45/0.01);
-        }
-        else if(ADC_volt_right_ave > 3.3) //When maximum weight (45lb) is exceeded
-        {
-            right_side_weight_lb = 45.00;
-        }
-        else    //Used when weight in load cell is between 1lb and 5lb
-        {
-            //Right side force conversion using INA333 gain and load cells Voltage (mV) vs Weight (lb) transfer characteristic, no error
-            //correction factor is needed (error doesn't affect measurement accuracy)
-            right_side_weight_lb = ((ADC_volt_right_ave-2.50)/(1+100/1.4))*(45/0.01);
-        }
-        right_side_weight_N = right_side_weight_lb*4.45;   //Calculates right side force in N
-
-        //Left side load cell conditioned output voltage acquisition
-        ADC_value4 = ADC14->MEM[9];    //Stores first conversion
-        ADC_volt4 = ((3.3*ADC_value4)/(16384.0)); //Obtains first sample of left side load cell conditioned output voltage
-        ADC_value3 = ADC14->MEM[10];    //Stores second conversion
-        ADC_volt3 = ((3.3*ADC_value3)/(16384.0)); //Obtains second sample of left side load cell conditioned output voltage
-        ADC_value2 = ADC14->MEM[11];    //Stores third conversion
-        ADC_volt2 = ((3.3*ADC_value2)/(16384.0)); //Obtains third sample of left side load cell conditioned output voltage
-        ADC_volt_left_ave = (ADC_volt4 + ADC_volt3 + ADC_volt2)/3;  //Calculates the average of left side load cell conditioned output
-        //voltage
-
-        //Analog voltage to left side force conversion
-        if(ADC_volt_left_ave >= 2.50 && ADC_volt_left_ave < 2.535)    //No weight in load cell
-        {
-            left_side_weight_lb = 0.00;
-        }
-        else if(ADC_volt_left_ave >= 2.545 && ADC_volt_left_ave <= 3.3)   //Weight in load cell
-        {
-            //Error correction factor when weight is greater or equal to 5lb
-            n_left = (ADC_volt_left_ave - 2.54)/0.01;
-            left_error_factor = 0.0004 + (n_left-1)*0.00015;
-
-            //Left side force conversion using INA333 gain, load cells Voltage (mV) vs Weight (lb) transfer characteristic and
-            //error correction factor
-            left_side_weight_lb = (((ADC_volt_left_ave-2.50)/(1+100/1.4))+left_error_factor)*(45/0.01);
-        }
-        else if(ADC_volt_left_ave > 3.3) //When maximum weight (45lb) is exceeded
-        {
-            left_side_weight_lb = 45.00;
-        }
-        else    //Used when weight in load cell is between 1lb and 5lb
-        {
-            //Left side force conversion using INA333 gain and load cells Voltage (mV) vs Weight (lb) transfer characteristic, no error
-            //correction factor is needed (error doesn't affect measurement accuracy)
-            left_side_weight_lb = ((ADC_volt_left_ave-2.50)/(1+100/1.4))*(45/0.01);
-        }
-        left_side_weight_N = left_side_weight_lb*4.45;   //Calculates left side force in N
-
-        //Lift load cell conditioned output voltage acquisition
-        ADC_value1 = ADC14->MEM[12];    //Store first conversion
-        ADC_volt1 = ((3.3*ADC_value1)/(16384.0)); //Obtains first sample of lift load cell conditioned output voltage
-        ADC_value0 = ADC14->MEM[13];    //Store second conversion
-        ADC_volt0 = ((3.3*ADC_value0)/(16384.0)); //Obtains second sample of lift load cell conditioned output voltage
-        ADC_value14 = ADC14->MEM[14];    //Store third conversion
-        ADC_volt14 = ((3.3*ADC_value14)/(16384.0)); //Obtains third sample of lift load cell conditioned output voltage
-        ADC_volt_lift_ave = (ADC_volt1 + ADC_volt0 + ADC_volt14)/3;  //Calculates the average of lift load cell conditioned output
-        //voltage
-
-        //Analog voltage to lift force conversion
-        if(ADC_volt_lift_ave >= 2.50 && ADC_volt_lift_ave < 2.535)    //No weight in load cell
-        {
-            lift_weight_lb = 0.00;
-        }
-        else if(ADC_volt_lift_ave >= 2.545 && ADC_volt_lift_ave <= 3.3)   //Weight in load cell
-        {
-            //Error correction factor when weight is greater or equal to 5lb
-            n_lift = (ADC_volt_lift_ave - 2.54)/0.01;
-            lift_error_factor = 0.0004 + (n_lift-1)*0.00015;
-
-            //Lift weight conversion using INA333 gain, load cells Voltage (mV) vs Weight (lb) transfer characteristic and
-            //error correction factor
-            lift_weight_lb = (((ADC_volt_lift_ave-2.50)/(1+100/1.4))+lift_error_factor)*(45/0.01);
-        }
-        else if(ADC_volt_lift_ave > 3.3) //When maximum weight (45lb) is exceeded
-        {
-            lift_weight_lb = 45.00;
-        }
-        else    //Used when weight in load cell is between 1lb and 5lb
-        {
-            //Lift weight conversion using INA333 gain and load cells Voltage (mV) vs Weight (lb) transfer characteristic, no error
-            //correction factor is needed (error doesn't affect measurement accuracy)
-            lift_weight_lb = ((ADC_volt_lift_ave-2.50)/(1+100/1.4))*(45/0.01);
-        }
-        lift_force_lb = lift_force_lb*(L4/L3_base_rod); //Calculates lift force in lb
-        lift_weight_N = lift_weight_lb*4.45;   //Calculates lift weight in N
-        lift_force_N = lift_force_lb*4.45;  //Calculates lift force in N
-
-        ADC14->CLRIFGR0 = ADC14_CLRIFGR0_CLRIFG0;   //Clear ADC IFG
-
-    }
-
-}
 
 void EUSCIB0_IRQHandler(void){
     //Checks the RX buffer to see if the Master Module has sent a command
     if(EUSCI_B0->IFG & BIT0){
         if(EUSCI_B0->RXBUF == 0xFF){
             SYSCTL->REBOOT_CTL = 0x6901;        //Software Reset
+        }
+        else
+        {
+            ADC14->CTL0 |= ADC14_CTL0_ENC | //Enable and Start Conversion
+                    ADC14_CTL0_SC;
+            delay(1500);    //Delay to give time for ADC conversions
+            ADC14->CTL0 &= ~ADC14_CTL0_ENC; //Disable Conversion
+            while(ADC14->IFGR0 != 0x00000000)
+            {
+                if(i < 4)
+                {
+                    ADC_value13[i] = ADC14->MEM[i]; //Stores drag front load cell conditioned output voltages digital codes
+                    ADC_volt13[i] = ((3.3*ADC_value13[i])/(16384.0));   //Stores drag front load cell conditioned output voltages
+                    ADC_value12[i] = ADC14->MEM[i+4];   //Stores drag back load cell conditioned output voltages digital codes
+                    ADC_volt12[i] = ((3.3*ADC_value12[i])/(16384.0));   //Stores drag back load cell conditioned output voltages
+                    ADC_value11[i] = ADC14->MEM[i+8];   //Stores right side load cell conditioned output voltages digital codes
+                    ADC_volt11[i] = ((3.3*ADC_value11[i])/(16384.0));   //Stores right side load cell conditioned output voltages
+                    ADC_value10[i] = ADC14->MEM[i+12];  //Stores left side load cell conditioned output voltages digital codes
+                    ADC_volt10[i] = ((3.3*ADC_value10[i])/(16384.0));   //Stores left side load cell conditioned output voltages
+                    ADC_value9[i] = ADC14->MEM[i+16];   //Stores lift load cell conditioned output voltages digital codes
+                    ADC_volt9[i] = ((3.3*ADC_value9[i])/(16384.0)); //Stores lift load cell conditioned output voltages
+                    ADC_volt_dragf_sum = ADC_volt_dragf_sum + ADC_volt13[i];  //Accumulates drag front load cell conditioned output voltages
+                    ADC_volt_dragb_sum = ADC_volt_dragb_sum + ADC_volt12[i];  //Accumulates drag back load cell conditioned output voltages
+                    ADC_volt_right_sum = ADC_volt_right_sum + ADC_volt11[i];  //Accumulates right side load cell conditioned output voltages
+                    ADC_volt_left_sum = ADC_volt_left_sum + ADC_volt10[i];  //Accumulates left side load cell conditioned output voltages
+                    ADC_volt_lift_sum = ADC_volt_lift_sum + ADC_volt9[i];   //Accumulates lift load cell conditioned output voltages
+                    i++;
+                }
+                if(i == 4)
+                {
+                    ADC_volt_dragf_ave = ADC_volt_dragf_sum/4;    //Calculates the average of drag front load cell conditioned output
+                    ADC_volt_dragf_sum = 0;
+                    ADC_volt_dragb_ave = ADC_volt_dragb_sum/4;  //Calculates the average of drag back load cell conditioned output
+                    ADC_volt_dragb_sum = 0;
+                    ADC_volt_right_ave = ADC_volt_right_sum/4;  //Calculates the average of right side load cell conditioned output
+                    ADC_volt_right_sum = 0;
+                    ADC_volt_left_ave = ADC_volt_left_sum/4;    //Calculates the average of left side load cell conditioned output
+                    ADC_volt_left_sum = 0;
+                    ADC_volt_lift_ave = ADC_volt_lift_sum/4;    //Calculates the average of lift load cell conditioned output
+                    ADC_volt_lift_sum = 0;
+                    i = 0;
+
+                    //Analog voltage to drag front force conversion
+                    if(ADC_volt_dragf_ave >= 2.60 && ADC_volt_dragf_ave < 2.635)    //No weight in load cell
+                    {
+                        drag_front_weight_lb = 0.00;
+                    }
+                    else if(ADC_volt_dragf_ave >= 2.645 && ADC_volt_dragf_ave <= 3.3)   //Weight in load cell
+                    {
+                        if(ADC_volt_dragf_ave < 2.65)   //Used when weight in load cell is between 1lb and 5lb
+                        {
+                            drag_front_weight_lb = ((ADC_volt_dragf_ave-2.60)/(1+100/1.4))*(45/0.01);
+                        }
+                        else
+                        {
+                            //Error correction factor when weight is greater or equal to 5lb
+                            n_dragf = (ADC_volt_dragf_ave - 2.64)/0.01;
+                            dragf_error_factor = 0.0004 + (n_dragf-1)*0.00015;
+
+                            //Drag front weight conversion using INA333 gain, load cells Voltage (mV) vs Weight (lb) transfer characteristic and
+                            //error correction factor
+                            drag_front_weight_lb = (((ADC_volt_dragf_ave-2.60)/(1+100/1.4))+dragf_error_factor)*(45/0.01);
+                        }
+                    }
+                    else if(ADC_volt_dragf_ave > 3.3) //When maximum weight (45lb) is exceeded
+                    {
+                        drag_front_weight_lb = 45.00;
+                    }
+                    else    //Default
+                    {
+                        //Drag front weight conversion using INA333 gain and load cells Voltage (mV) vs Weight (lb) transfer characteristic, no error
+                        //correction factor is needed (error doesn't affect measurement accuracy)
+                        drag_front_weight_lb = ((ADC_volt_dragf_ave-2.60)/(1+100/1.4))*(45/0.01);
+                    }
+                    drag_front_force_lb = drag_front_weight_lb*(L2/L1); //Calculates drag front force in lb
+                    drag_front_weight_N = drag_front_weight_lb*4.45;   //Calculates drag front weight in N
+                    drag_front_force_N = drag_front_force_lb*4.45;  //Calculates drag front force in N
+
+
+                    //Analog voltage to drag back force conversion
+                    if(ADC_volt_dragb_ave >= 2.60 && ADC_volt_dragb_ave < 2.635)    //No weight in load cell
+                    {
+                        drag_back_weight_lb = 0.00;
+                    }
+                    else if(ADC_volt_dragb_ave >= 2.645 && ADC_volt_dragb_ave <= 3.3)   //Weight in load cell
+                    {
+                        if(ADC_volt_dragb_ave < 2.65)   //Used when weight in load cell is between 1lb and 5lb
+                        {
+                            drag_back_weight_lb = ((ADC_volt_dragb_ave-2.60)/(1+100/1.4))*(45/0.01);
+                        }
+                        else
+                        {
+                            //Error correction factor when weight is greater or equal to 5lb
+                            n_dragb = (ADC_volt_dragb_ave - 2.64)/0.01;
+                            dragb_error_factor = 0.0004 + (n_dragb-1)*0.00015;
+
+                            //Drag back weight conversion using INA333 gain, load cells Voltage (mV) vs Weight (lb) transfer characteristic and
+                            //error correction factor
+                            drag_back_weight_lb = (((ADC_volt_dragb_ave-2.60)/(1+100/1.4))+dragb_error_factor)*(45/0.01);
+                        }
+                    }
+                    else if(ADC_volt_dragb_ave > 3.3) //When maximum weight (45lb) is exceeded
+                    {
+                        drag_back_weight_lb = 45.00;
+                    }
+                    else    //Default
+                    {
+                        //Drag back weight conversion using INA333 gain and load cells Voltage (mV) vs Weight (lb) transfer characteristic, no error
+                        //correction factor is needed (error doesn't affect measurement accuracy)
+                        drag_back_weight_lb = ((ADC_volt_dragb_ave-2.60)/(1+100/1.4))*(45/0.01);
+                    }
+                    drag_back_force_lb = drag_back_weight_lb*(L2/L1);   //Calculates drag back force in lb
+                    drag_back_weight_N = drag_back_weight_lb*4.45;   //Calculates drag back weight in N
+                    drag_back_force_N = drag_back_force_lb*4.45;    //Calculates drag back force in N
+
+
+                    //Analog voltage to right side force conversion
+                    if(ADC_volt_right_ave >= 2.60 && ADC_volt_right_ave < 2.635)    //No weight in load cell
+                    {
+                        right_side_weight_lb = 0.00;
+                    }
+                    else if(ADC_volt_right_ave >= 2.645 && ADC_volt_right_ave <= 3.3)   //Weight in load cell
+                    {
+                        if(ADC_volt_right_ave < 2.65)   //Used when weight in load cell is between 1lb and 5lb
+                        {
+                            right_side_weight_lb = ((ADC_volt_right_ave-2.60)/(1+100/1.4))*(45/0.01);
+                        }
+                        else
+                        {
+                            //Error correction factor when weight is greater or equal to 5lb
+                            n_right = (ADC_volt_right_ave - 2.64)/0.01;
+                            right_error_factor = 0.0004 + (n_right-1)*0.00015;
+
+                            //Right side force conversion using INA333 gain, load cells Voltage (mV) vs Weight (lb) transfer characteristic and
+                            //error correction factor
+                            right_side_weight_lb = (((ADC_volt_right_ave-2.60)/(1+100/1.4))+right_error_factor)*(45/0.01);
+                        }
+                    }
+                    else if(ADC_volt_right_ave > 3.3) //When maximum weight (45lb) is exceeded
+                    {
+                        right_side_weight_lb = 45.00;
+                    }
+                    else    //Default
+                    {
+                        //Right side force conversion using INA333 gain and load cells Voltage (mV) vs Weight (lb) transfer characteristic, no error
+                        //correction factor is needed (error doesn't affect measurement accuracy)
+                        right_side_weight_lb = ((ADC_volt_right_ave-2.60)/(1+100/1.4))*(45/0.01);
+                    }
+                    right_side_weight_N = right_side_weight_lb*4.45;   //Calculates right side force in N
+
+
+                    //Analog voltage to left side force conversion
+                    if(ADC_volt_left_ave >= 2.60 && ADC_volt_left_ave < 2.635)    //No weight in load cell
+                    {
+                        left_side_weight_lb = 0.00;
+                    }
+                    else if(ADC_volt_left_ave >= 2.645 && ADC_volt_left_ave <= 3.3)   //Weight in load cell
+                    {
+                        if(ADC_volt_left_ave < 2.65)    //Used when weight in load cell is between 1lb and 5lb
+                        {
+                            left_side_weight_lb = ((ADC_volt_left_ave-2.60)/(1+100/1.4))*(45/0.01);
+                        }
+                        else
+                        {
+                            //Error correction factor when weight is greater or equal to 5lb
+                            n_left = (ADC_volt_left_ave - 2.64)/0.01;
+                            left_error_factor = 0.0004 + (n_left-1)*0.00015;
+
+                            //Left side force conversion using INA333 gain, load cells Voltage (mV) vs Weight (lb) transfer characteristic and
+                            //error correction factor
+                            left_side_weight_lb = (((ADC_volt_left_ave-2.60)/(1+100/1.4))+left_error_factor)*(45/0.01);
+                        }
+                    }
+                    else if(ADC_volt_left_ave > 3.3) //When maximum weight (45lb) is exceeded
+                    {
+                        left_side_weight_lb = 45.00;
+                    }
+                    else    //Default
+                    {
+                        //Left side force conversion using INA333 gain and load cells Voltage (mV) vs Weight (lb) transfer characteristic, no error
+                        //correction factor is needed (error doesn't affect measurement accuracy)
+                        left_side_weight_lb = ((ADC_volt_left_ave-2.60)/(1+100/1.4))*(45/0.01);
+                    }
+                    left_side_weight_N = left_side_weight_lb*4.45;   //Calculates left side force in N
+
+                    //Analog voltage to lift force conversion
+                    if(ADC_volt_lift_ave >= 2.60 && ADC_volt_lift_ave < 2.635)    //No weight in load cell
+                    {
+                        lift_weight_lb = 0.00;
+                    }
+                    else if(ADC_volt_lift_ave >= 2.645 && ADC_volt_lift_ave <= 3.3)   //Weight in load cell
+                    {
+                        if(ADC_volt_lift_ave < 2.65)    //Used when weight in load cell is between 1lb and 5lb
+                        {
+                            lift_weight_lb = ((ADC_volt_lift_ave-2.60)/(1+100/1.4))*(45/0.01);
+                        }
+                        else
+                        {
+                            //Error correction factor when weight is greater or equal to 5lb
+                            n_lift = (ADC_volt_lift_ave - 2.64)/0.01;
+                            lift_error_factor = 0.0004 + (n_lift-1)*0.00015;
+
+                            //Lift weight conversion using INA333 gain, load cells Voltage (mV) vs Weight (lb) transfer characteristic and
+                            //error correction factor
+                            lift_weight_lb = (((ADC_volt_lift_ave-2.60)/(1+100/1.4))+lift_error_factor)*(45/0.01);
+                        }
+                    }
+                    else if(ADC_volt_lift_ave > 3.3) //When maximum weight (45lb) is exceeded
+                    {
+                        lift_weight_lb = 45.00;
+                    }
+                    else    //Default
+                    {
+                        //Lift weight conversion using INA333 gain and load cells Voltage (mV) vs Weight (lb) transfer characteristic, no error
+                        //correction factor is needed (error doesn't affect measurement accuracy)
+                        lift_weight_lb = ((ADC_volt_lift_ave-2.60)/(1+100/1.4))*(45/0.01);
+                    }
+                    lift_force_lb = lift_weight_lb*(L4/L3_base_rod); //Calculates lift force in lb
+                    lift_weight_N = lift_weight_lb*4.45;   //Calculates lift weight in N
+                    lift_force_N = lift_force_lb*4.45;  //Calculates lift force in N
+                }
+            }
         }
     }
     //Checks the TX buffer to see if the Master Module is ready to read the data acquisition from the Balance Module
