@@ -8,9 +8,9 @@ import { Injectable } from '@angular/core';
 export class InMemoryDataService implements InMemoryDbService {
   createDb() {
     const users = [
-      { id: 1, name: 'Misael', email: 'misael.valentin', password: '12345678', permissions: 'Researcher' },
-      { id: 2, name: 'Raúl', email: 'raul.zapata', password: '12345678', permissions: 'Administrator' },
-      { id: 3, name: 'Ivan', email: 'ivan.santiago', password: '12345678', permissions: 'Technician' }
+      { id: 1, name: 'Misael', email: 'misael.valentin@upr.edu', password: '12345678', permissions: 'Researcher' },
+      { id: 2, name: 'Raúl', email: 'raul.zapata@upr.edu', password: '12345678', permissions: 'Administrator' },
+      { id: 3, name: 'Ivan', email: 'ivan.santiago@upr.edu', password: '12345678', permissions: 'Technician' }
     ];
     console.log('Created DB');
     return {users};
