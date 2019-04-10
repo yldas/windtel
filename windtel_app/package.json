@@ -1,6 +1,6 @@
 {
   "name": "windtel_app",
-    "main": "electron/main.js",
+  "main": "electron/main.js",
   "version": "0.0.1",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
@@ -27,6 +27,7 @@
     "@ionic-native/splash-screen": "^5.0.0",
     "@ionic-native/status-bar": "^5.0.0",
     "@ionic/angular": "^4.1.0",
+    "angular-in-memory-web-api": "^0.8.0",
     "core-js": "^2.5.4",
     "rxjs": "~6.3.3",
     "zone.js": "~0.8.29"

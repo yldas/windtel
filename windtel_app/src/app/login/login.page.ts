@@ -19,14 +19,14 @@ export class LoginPage implements OnInit {
   submitted = false;
 
   tryLogin() {
-    this.userService.getUser(this.model.email)
+    this.userService.getUser(this.model.email, this.model.password, this.registered_users)
         .subscribe(currentUser => this.currentUser = currentUser);
-    //this.currentUser = new User(1, 'Misael', this.model.email, this.model.password, 'Researcher');
     this.onSubmit();
   }
 
   onSubmit() {
     this.submitted = true;
+    console.log(this.currentUser.email);
     this.userService.setCurrentUser(this.currentUser);
   }
 
