@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 
 import { User } from './user';
 import { USERS } from './mock-users';
+import { MessageService } from './message.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,9 +13,10 @@ export class UserService {
 
   current_user: User;
 
-  constructor() { }
+  constructor(private messageService: MessageService) { }
 
-  getUsers(): Observable<User[]> {
+  getRegisteredUsers(): Observable<User[]> {
+    this.messageService.add('UserService: fetched users');
     return of(USERS);
   }
 
@@ -24,5 +26,9 @@ export class UserService {
 
   getCurrentUser(): User {
     return this.current_user;
+  }
+
+  getUser(email: string): Observable<User> {
+    return of (USERS.find(current_user => current_user.email === email));
   }
 }

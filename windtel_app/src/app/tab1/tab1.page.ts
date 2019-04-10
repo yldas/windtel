@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 
-import { LoginPage } from '../login/login.page'; 
 import { UserService } from '../user.service';
 import { User } from '../user';
 
@@ -11,14 +10,15 @@ import { User } from '../user';
 })
 export class Tab1Page {
 
+  currentUser: User;
+
   constructor(private userService: UserService) { }
 
   getCurrentUser() {
-    return this.userService.getCurrentUser().email;
+    this.currentUser = this.userService.getCurrentUser();
   }
 
-  ngOnInit() {
-  }
+  ngOnInit() { }
 
   // TODO: Remove this when we're done
   get diagnostic() { return JSON.stringify(this.userService.getCurrentUser()); }

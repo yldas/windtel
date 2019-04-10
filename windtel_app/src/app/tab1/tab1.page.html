@@ -13,11 +13,12 @@
           <ion-card-title>Welcome to WindTel!</ion-card-title>
         </ion-card-header>
         <ion-card-content>
+            {{getCurrentUser()}}
           <ion-item>
             <ion-chip color="primary">
-              <ion-label>Researcher</ion-label>
+              <ion-label>{{currentUser.permissions}}</ion-label>
             </ion-chip>
-            {{getCurrentUser()}}
+            {{currentUser.name}}
           </ion-item>
           <ion-item>
             <ion-button routerLink="/">Logout</ion-button>

@@ -15,12 +15,14 @@ const routes: Routes = [
 ];
 
 @NgModule({
+  declarations: [
+    LoginPage
+  ],
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
     RouterModule.forChild(routes)
-  ],
-  declarations: [LoginPage]
+  ]
 })
 export class LoginPageModule {}

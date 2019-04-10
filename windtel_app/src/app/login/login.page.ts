@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 
 import { User } from '../user';
 import { UserService } from '../user.service';
-import { modelGroupProvider } from '@angular/forms/src/directives/ng_model_group';
 
 @Component({
   selector: 'app-login',
@@ -15,12 +14,14 @@ export class LoginPage implements OnInit {
 
   registered_users: User[];
 
-  public currentUser: User;
+  currentUser: User;
 
   submitted = false;
 
   tryLogin() {
-    this.currentUser = new User(1, 'Misael', this.model.email, this.model.password, 'Researcher');
+    this.userService.getUser(this.model.email)
+        .subscribe(currentUser => this.currentUser = currentUser);
+    //this.currentUser = new User(1, 'Misael', this.model.email, this.model.password, 'Researcher');
     this.onSubmit();
   }
 
@@ -32,15 +33,15 @@ export class LoginPage implements OnInit {
   // TODO: Remove this when we're done
   get diagnostic() { return JSON.stringify(this.userService.getCurrentUser()); }
 
-  getUsers(): void {
-    this.userService.getUsers()
+  getRegisteredUsers(): void {
+    this.userService.getRegisteredUsers()
         .subscribe(registered_users => this.registered_users = registered_users);
   }
 
   constructor(private userService: UserService) { }
 
   ngOnInit() {
-    this.getUsers();
+    this.getRegisteredUsers();
   }
 
 }
