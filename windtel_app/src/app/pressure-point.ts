@@ -2,10 +2,8 @@ export class PressurePoint {
 
     constructor(
         public id: number,
-        public first: string,
-        public last: string,
-        public email: string,
-        public password: string,
-        public permissions: string
+        public point: string,
+        public sensorNum: string,
+        public measurementid: number
     ) { }
 }

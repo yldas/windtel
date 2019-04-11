@@ -10,7 +10,7 @@ import { UserService } from '../user.service';
 })
 export class LoginPage implements OnInit {
 
-  model = new User(1, 'Misael', 'Valentin', 'misael.valentin@upr.edu', '12345678', 'Researcher');
+  model = new User(1, 'Misael', 'Valentin', 'misael.valentin@upr.edu', 'Student', 'ICOM', 'UPRM', 'Aguadilla', '12345678', 'Researcher');
 
   registered_users: User[];
 

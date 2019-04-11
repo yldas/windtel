@@ -20,11 +20,11 @@ export class InMemoryDataService implements InMemoryDbService {
       { id: 1, name: 'my_first_experiment', description: 'This was my first experiment!', time: '5 minutes', date: '4/1/2019', userid: 1 }
     ];
     const measurements = [
-      { id: 1, liftforce: '2 lb', dragfrontforce: '1 lb', leftsideforce: '3 lb', rightsideforce: '4 lb', windspeed: '5 mph', temperature: '23 C', humidity: '35%', experimentid: 1 },
-      { id: 2, liftforce: '2 lb', dragfrontforce: '2 lb', leftsideforce: '3 lb', rightsideforce: '10 lb', windspeed: '10 mph', temperature: '23 C', humidity: '34%', experimentid: 1 },
-      { id: 3, liftforce: '3 lb', dragfrontforce: '3 lb', leftsideforce: '3 lb', rightsideforce: '20 lb', windspeed: '15 mph', temperature: '23 C', humidity: '37%', experimentid: 1 },
-      { id: 4, liftforce: '5 lb', dragfrontforce: '4 lb', leftsideforce: '3 lb', rightsideforce: '15 lb', windspeed: '20 mph', temperature: '23 C', humidity: '35%', experimentid: 1 },
-      { id: 5, liftforce: '1 lb', dragfrontforce: '5 lb', leftsideforce: '3 lb', rightsideforce: '4 lb', windspeed: '25 mph', temperature: '23 C', humidity: '36%', experimentid: 1 }
+      { id: 1, liftforce: '2 lb', dragfrontforce: '1 lb', dragbackfroce: '4 lb', leftsideforce: '3 lb', rightsideforce: '4 lb', windspeed: '5 mph', temperature: '23 C', humidity: '35%', experimentid: 1 },
+      { id: 2, liftforce: '2 lb', dragfrontforce: '2 lb', dragbackfroce: '4 lb', leftsideforce: '3 lb', rightsideforce: '10 lb', windspeed: '10 mph', temperature: '23 C', humidity: '34%', experimentid: 1 },
+      { id: 3, liftforce: '3 lb', dragfrontforce: '3 lb', dragbackfroce: '4 lb', leftsideforce: '3 lb', rightsideforce: '20 lb', windspeed: '15 mph', temperature: '23 C', humidity: '37%', experimentid: 1 },
+      { id: 4, liftforce: '5 lb', dragfrontforce: '4 lb', dragbackfroce: '4 lb', leftsideforce: '3 lb', rightsideforce: '15 lb', windspeed: '20 mph', temperature: '23 C', humidity: '35%', experimentid: 1 },
+      { id: 5, liftforce: '1 lb', dragfrontforce: '5 lb', dragbackfroce: '4 lb', leftsideforce: '3 lb', rightsideforce: '4 lb', windspeed: '25 mph', temperature: '23 C', humidity: '36%', experimentid: 1 }
     ];
     const pressurePoint = [
       { id: 1, point: '20 P', sensorNum: 1, measurementid: 1 },

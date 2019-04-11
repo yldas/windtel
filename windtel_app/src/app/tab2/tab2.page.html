@@ -1,9 +1,154 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>
-      Tab Two
+      Experiment
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content></ion-content>
+<ion-content>
+    <ion-card class="welcome-card">
+        <ion-img src="assets/windtel_logo.png" style="display: block; width: 35%; height: auto; margin-left: auto; margin-right: auto;"></ion-img>
+        <ion-card-header>
+          <ion-card-title>Perform an Experiment</ion-card-title>
+        </ion-card-header>
+    </ion-card>
+    <ion-card>
+      <ion-card-content>
+          <ion-list>
+              <form (ngSubmit)="tryExperimentStart()" #experiment="ngForm">
+              <ion-item>
+                <ion-label position="floating">Rod length</ion-label>
+                <ion-input [(ngModel)]="model.rodLength" name="rodLength" required></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Experiment duration</ion-label>
+                <ion-input [(ngModel)]="model.time" name="time" required></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-list>
+                    <ion-item>
+                        <ion-label><b>Parameters to measure</b></ion-label>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label>Barometric Pressure</ion-label>
+                        <ion-checkbox [(ngModel)]="pressureCheck" slot="end"></ion-checkbox>
+                      </ion-item>
+                      <div *ngIf="pressureCheck">
+                          <ion-list>
+                              <ion-item>
+                                  <ion-label position="floating">Samples</ion-label>
+                                  <ion-input slot="end"></ion-input>
+                              </ion-item>
+                              <ion-item>
+                                  <ion-label>All</ion-label>
+                                  <ion-checkbox [(ngModel)]="allPressures" slot="end"></ion-checkbox>
+                              </ion-item>
+                              <ion-item>
+                                  <ion-label>Sensor 1</ion-label>
+                                  <ion-checkbox [checked]="allPressures" slot="end"></ion-checkbox>
+                              </ion-item>
+                              <ion-item>
+                                  <ion-label>Sensor 2</ion-label>
+                                  <ion-checkbox [checked]="allPressures" slot="end"></ion-checkbox>
+                              </ion-item>
+                              <ion-item>
+                                  <ion-label>Sensor 3</ion-label>
+                                  <ion-checkbox [checked]="allPressures" slot="end"></ion-checkbox>
+                              </ion-item>
+                              <ion-item>
+                                  <ion-label>Sensor 4</ion-label>
+                                  <ion-checkbox [checked]="allPressures" slot="end"></ion-checkbox>
+                              </ion-item>
+                              <ion-item>
+                                  <ion-label>Sensor 5</ion-label>
+                                  <ion-checkbox [checked]="allPressures" slot="end"></ion-checkbox>
+                              </ion-item>
+                              <ion-item>
+                                  <ion-label>Sensor 6</ion-label>
+                                  <ion-checkbox [checked]="allPressures" slot="end"></ion-checkbox>
+                              </ion-item>
+                              <ion-item>
+                                  <ion-label>Sensor 7</ion-label>
+                                  <ion-checkbox [checked]="allPressures" slot="end"></ion-checkbox>
+                              </ion-item>
+                              <ion-item>
+                                  <ion-label>Sensor 8</ion-label>
+                                  <ion-checkbox [checked]="allPressures" slot="end"></ion-checkbox>
+                              </ion-item>
+                          </ion-list>
+                        </div>
+                    <ion-item>
+                        <ion-label>Wind Forces</ion-label>
+                        <ion-checkbox [(ngModel)]="forceCheck" slot="end"></ion-checkbox>
+                    </ion-item>
+                    <div *ngIf="forceCheck">
+                        <ion-list>
+                            <ion-item>
+                                <ion-label position="floating">Samples</ion-label>
+                                <ion-input slot="end"></ion-input>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label>All</ion-label>
+                                <ion-checkbox [(ngModel)]="allForces" slot="end"></ion-checkbox>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label>Drag front</ion-label>
+                                <ion-checkbox [checked]="allForces" slot="end"></ion-checkbox>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label>Drag back</ion-label>
+                                <ion-checkbox [checked]="allForces" slot="end"></ion-checkbox>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label>Side right</ion-label>
+                                <ion-checkbox [checked]="allForces" slot="end"></ion-checkbox>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label>Side left</ion-label>
+                                <ion-checkbox [checked]="allForces" slot="end"></ion-checkbox>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label>Up</ion-label>
+                                <ion-checkbox [checked]="allForces" slot="end"></ion-checkbox>
+                            </ion-item>
+                        </ion-list>
+                      </div>
+                    <ion-item>
+                        <ion-label>Relative Humidity</ion-label>
+                        <ion-checkbox [(ngModel)]="humidityCheck" slot="end"></ion-checkbox>
+                    </ion-item>
+                    <div *ngIf="humidityCheck">
+                        <ion-item>
+                            <ion-label position="floating">Samples</ion-label>
+                            <ion-input slot="end"></ion-input>
+                        </ion-item>
+                    </div>
+                    <ion-item>
+                        <ion-label>Temperature</ion-label>
+                        <ion-checkbox [(ngModel)]="temperatureCheck" slot="end"></ion-checkbox>
+                    </ion-item>
+                    <div *ngIf="temperatureCheck">
+                    <ion-item>
+                        <ion-label position="floating">Samples</ion-label>
+                        <ion-input slot="end"></ion-input>
+                    </ion-item>
+                    </div>
+                    <ion-item>
+                        <ion-label>Wind Speed</ion-label>
+                        <ion-checkbox [(ngModel)]="speedCheck" slot="end"></ion-checkbox>
+                    </ion-item>
+                    <div *ngIf="speedCheck">
+                      <ion-item>
+                          <ion-label position="floating">Samples</ion-label>
+                          <ion-input slot="end"></ion-input>
+                      </ion-item>
+                    </div>
+                </ion-list>
+              </ion-item>
+              <ion-button type="submit" [disabled]="!experiment.form.valid">Start Experiment</ion-button>
+          </form>
+          </ion-list>
+      </ion-card-content>
+    </ion-card>
+</ion-content>

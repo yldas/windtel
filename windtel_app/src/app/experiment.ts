@@ -2,10 +2,11 @@ export class Experiment {
 
     constructor(
         public id: number,
-        public first: string,
-        public last: string,
-        public email: string,
-        public password: string,
-        public permissions: string
+        public name: string,
+        public description: string,
+        public time: string,
+        public date: string,
+        public userid: number,
+        public rodLength: number
     ) { }
 }

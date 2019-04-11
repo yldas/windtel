@@ -42,6 +42,30 @@
                                [(ngModel)]="model.last" name="last" required>
                     </ion-input>
                 </ion-item>
+                <ion-item>
+                  <ion-label position="floating">Vocation</ion-label>
+                  <ion-input placeholder="Professor"
+                             [(ngModel)]="model.vocation" name="vocation" required>
+                  </ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Department</ion-label>
+                    <ion-input placeholder="INCI"
+                           [(ngModel)]="model.department" name="department" required>
+                    </ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="floating">Institution</ion-label>
+                  <ion-input placeholder="UPRM"
+                         [(ngModel)]="model.institution" name="institution" required>
+                  </ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">City</ion-label>
+                <ion-input placeholder="Aguadilla"
+                       [(ngModel)]="model.city" name="city">
+                </ion-input>
+            </ion-item>
                 <ion-button type="submit" [disabled]="!login.form.valid" routerLink="../tabs">Sign Up</ion-button>
             </form>
         </ion-card-content>

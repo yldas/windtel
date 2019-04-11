@@ -2,10 +2,14 @@ export class Measurement {
 
     constructor(
         public id: number,
-        public first: string,
-        public last: string,
-        public email: string,
-        public password: string,
-        public permissions: string
+        public liftforce: string,
+        public dragfrontforce: string,
+        public dragbackfroce: string,
+        public leftsideforce: string,
+        public rightsideforce: string,
+        public windSpeed: string,
+        public temperature: string,
+        public humidity: string,
+        public experimentid: number
     ) { }
 }
