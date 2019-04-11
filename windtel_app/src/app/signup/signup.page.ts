@@ -4,11 +4,11 @@ import { User } from '../user';
 import { UserService } from '../user.service';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.page.html',
-  styleUrls: ['./login.page.scss'],
+  selector: 'app-signup',
+  templateUrl: './signup.page.html',
+  styleUrls: ['./signup.page.scss'],
 })
-export class LoginPage implements OnInit {
+export class SignupPage implements OnInit {
 
   model = new User(1, 'Misael', 'Valentin', 'misael.valentin@upr.edu', '12345678', 'Researcher');
 
@@ -18,11 +18,9 @@ export class LoginPage implements OnInit {
 
   submitted = false;
 
-  tryLogin() {
-    //this.getRegisteredUsers();
-    this.userService.getUser(this.model.email, this.model.password, this.registered_users)
-        .subscribe(currentUser => this.currentUser = currentUser);
-    this.onSubmit();
+  tryRegister() {
+    this.currentUser = new User(1, this.model.first, this.model.last, this.model.email, this.model.password, 'Researcher');
+    this.userService.registerUser(this.currentUser);
   }
 
   onSubmit() {

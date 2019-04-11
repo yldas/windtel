@@ -8,7 +8,7 @@
 
 <ion-content>
     <ion-card class="welcome-card">
-        <ion-img src="/assets/windtel_logo.png" style="display: block; width: 35%; height: auto; margin-left: auto; margin-right: auto;"></ion-img>
+        <ion-img src="assets/windtel_logo.png" style="display: block; width: 35%; height: auto; margin-left: auto; margin-right: auto;"></ion-img>
         <ion-card-header>
           <ion-card-title>Welcome to WindTel!</ion-card-title>
         </ion-card-header>
@@ -18,7 +18,7 @@
             <ion-chip color="primary">
               <ion-label>{{currentUser.permissions}}</ion-label>
             </ion-chip>
-            {{currentUser.name}}
+            {{currentUser.first}}
           </ion-item>
           <ion-item>
             <ion-button routerLink="/">Logout</ion-button>

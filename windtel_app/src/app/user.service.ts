@@ -4,7 +4,6 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 
 import { User } from './user';
-import { USERS } from './mock-users';
 import { MessageService } from './message.service';
 
 const httpOptions = {
@@ -44,9 +43,11 @@ export class UserService {
     }
   }
 
+  /*
   getUserOld(email: string): Observable<User> {
     return of (USERS.find(current_user => current_user.email === email));
   }
+  */
 
   registerUser(user: User): Observable<any> {
     return this.http.post(this.usersUrl, user, httpOptions).pipe(
