@@ -5,15 +5,17 @@ class ExperimentHandler:
 
     def build_experiment_dict(self, row):
         result = {}
-        result['eid'] = row[0]
-        result['ename'] = row[1]
-        result['edescription'] = row[2]
-        result['etime'] = row[3]
-        result['edate'] = row[4]
+        result['rid'] = row[0]
+        result['eid'] = row[1]
+        result['ename'] = row[2]
+        result['edescription'] = row[3]
+        result['etime'] = row[4]
+        result['edate'] = row[5]
         return result
 
-    def build_experiment_attributes(self, eid, ename, edescription, etime, edate):
+    def build_experiment_attributes(self, rid, eid, ename, edescription, etime, edate):
         result = {}
+        result['rid'] = rid
         result['eid'] = eid
         result['ename'] = ename
         result['edescription'] = edescription
@@ -23,26 +25,28 @@ class ExperimentHandler:
 
     def build_measurement_dict(self, row):
         result = {}
-        result['mid'] = row[0]
-        result['upforce'] = row[1]
-        result['frontforce'] = row[2]
-        result['backforce'] = row[3]
-        result['leftforce'] = row[4]
-        result['rightforce'] = row[5]
-        result['windspeed'] = row[6]
-        result['temperature'] = row[7]
-        result['humidity'] = row[8]
+        result['eid'] = row[0]
+        result['mid'] = row[1]
+        result['liftforce'] = row[2]
+        result['dragfrontforce'] = row[3]
+        result['dragbackforce'] = row[4]
+        result['leftsideforce'] = row[5]
+        result['rightsideforce'] = row[6]
+        result['windspeed'] = row[7]
+        result['temperature'] = row[8]
+        result['humidity'] = row[9]
         return result
 
-    def build_measurement_attributes(self, mid, upforce, frontforce, backforce, leftforce, rightforce, windspeed,
+    def build_measurement_attributes(self, eid, mid, liftforce, dragfrontforce, dragbackforce, leftsideforce, rightsideforce, windspeed,
                                      temperature, humidity):
         result = {}
+        result['eid'] = eid
         result['mid'] = mid
-        result['upforce'] = upforce
-        result['frontforce'] = frontforce
-        result['backforce'] = backforce
-        result['leftforce'] = leftforce
-        result['rightforce'] = rightforce
+        result['liftforce'] = liftforce
+        result['dragfrontforce'] = dragfrontforce
+        result['dragbackforce'] = dragbackforce
+        result['leftsideforce'] = leftsideforce
+        result['rightsideforce'] = rightsideforce
         result['windspeed'] = windspeed
         result['temperature'] = temperature
         result['humidity'] = humidity
@@ -51,11 +55,14 @@ class ExperimentHandler:
     def getAllExperiments(self):
         dao = ExperimentDAO()
         experiment_list = dao.getAllExperiments()
-        result_map = []
-        for row in experiment_list:
-            result = self.build_experiment_dict(row)
-            result_map.append(result)
-        return jsonify(Experiments=result_map)
+        if experiment_list:
+            result_map = []
+            for row in experiment_list:
+                result = self.build_experiment_dict(row)
+                result_map.append(result)
+            return jsonify(Experiments=result_map)
+        else:
+            return jsonify(Error="No experiments to show.")
 
     def getExperimentInformationById(self, experimentid):
         dao = ExperimentDAO()
@@ -71,8 +78,34 @@ class ExperimentHandler:
         if not dao.getExperimentInformationById(experimentid):
             return jsonify(Error="Experiment not found."), 404
         else:
-            dao.deleteExperimentById(experimentid)
+            if dao.getAllPressurePointsFromMeasurementById(experimentid):
+                dao.deleteAllPressurePointsFromMeasurementById(experimentid)
+            if dao.getAllMeasurementsFromExperimentById(experimentid):
+                dao.deleteAllMeasurementsFromExperimentById(experimentid)
+            if dao.getExperimentInformationById(experimentid):
+                dao.deleteExperimentById(experimentid)
             return jsonify(DeleteStatus="OK"), 200
+
+    def storeMeasurementFromExperimentById(self, experimentid, form):
+        dao = ExperimentDAO()
+        if len(form) != 8:
+            return jsonify(Error="Malformed post request"), 400
+        else:
+            eid = experimentid
+            liftforce = form['liftforce']
+            dragfrontforce = form['dragfrontforce']
+            dragbackforce = form['dragbackforce']
+            leftsideforce = form['leftsideforce']
+            rightsideforce = form['rightsideforce']
+            windspeed = form['windspeed']
+            temperature = form['temperature']
+            humidity = form['humidity']
+            if eid and liftforce and dragfrontforce and dragbackforce and leftsideforce and rightsideforce and windspeed and temperature and humidity:
+                mid = dao.storeMeasurementFromExperimentById(eid, liftforce, dragfrontforce, dragbackforce, leftsideforce, rightsideforce, windspeed, temperature, humidity)
+                result = self.build_measurement_attributes(mid, liftforce, dragfrontforce, dragbackforce, leftsideforce, rightsideforce, windspeed, temperature, humidity, eid)
+                return jsonify(Measurement=result), 200
+            else:
+                return jsonify(Error="Unexpected attributes in post request"), 400
 
     def getAllMeasurementsFromExperimentById(self, experimentid):
         dao = ExperimentDAO()
@@ -90,24 +123,8 @@ class ExperimentHandler:
         elif not dao.getAllMeasurementsFromExperimentById(experimentid):
             return jsonify(Error="No measurements found."), 404
         else:
-            dao.deleteAllMeasurementsFromExperimentById(experimentid)
+            if dao.getAllPressurePointsFromMeasurementById(experimentid):
+                dao.deleteAllPressurePointsFromMeasurementById(experimentid)
+            if dao.getAllMeasurementsFromExperimentById(experimentid):
+                dao.deleteAllMeasurementsFromExperimentById(experimentid)
             return jsonify(DeleteStatus="OK"), 200
-
-    def updateExperimentInformationById(self, experimentid, form):
-        dao = ExperimentDAO()
-        if not dao.getAllExperiments():
-            return jsonify(Error="No experiments found"), 404
-        else:
-            if len(form) != 4:
-                return jsonify(Error="Malformed update request"), 400
-            else:
-                ename = form['ename']
-                edescription = form['edescription']
-                etime = form['etime']
-                edate = form['edate']
-                if ename and edescription and etime and edate:
-                    response = dao.updateExperimentInformationById(experimentid)
-                    result = self.build_experiment_attributes(experimentid, ename, edescription, etime, edate)
-                    return jsonify(Experiment=result), 200
-                else:
-                    return jsonify(Error="Unexpected attributes in update request"), 400

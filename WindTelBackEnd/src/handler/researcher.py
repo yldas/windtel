@@ -1,9 +1,10 @@
 from flask import jsonify
 from dao.researcher import ResearcherDAO
+from dao.experiment import ExperimentDAO
 
 class ResearcherHandler:
 
-    def build_researcher_dict(self, row):
+    def build_researcherinfo_dict(self, row):
         result = {}
         result['rid'] = row[0]
         result['rname'] = row[1]
@@ -14,6 +15,18 @@ class ResearcherHandler:
         result['rdepartment'] = row[6]
         result['rinstitution'] = row[7]
         result['rcity'] = row[8]
+        return result
+
+    def build_researcher_dict(self, row):
+        result = {}
+        result['rid'] = row[0]
+        result['rname'] = row[1]
+        result['rlast_name'] = row[2]
+        result['remail'] = row[3]
+        result['rvocation'] = row[4]
+        result['rdepartment'] = row[5]
+        result['rinstitution'] = row[6]
+        result['rcity'] = row[7]
         return result
 
     def build_researcher_attributes(self, rid, rname, rlast_name, remail, rpassword, rvocation, rdepartment, rinstitution, rcity):
@@ -36,11 +49,13 @@ class ResearcherHandler:
         result['edescription'] = row[2]
         result['etime'] = row[3]
         result['edate'] = row[4]
+        result['rid'] = row[5]
         return result
 
-    def build_experiment_attributes(self, eid, ename, edescription, etime, edate):
+    def build_experiment_attributes(self, eid, rid, ename, edescription, etime, edate):
         result = {}
         result['eid'] = eid
+        result['rid'] = rid
         result['ename'] = ename
         result['edescription'] = edescription
         result['etime'] = etime
@@ -99,7 +114,16 @@ class ResearcherHandler:
             result_map = self.build_researcher_dict(result)
         return jsonify(Users=result_map)
 
-    def updateUserInformationById(self, userid, form):
+    def deleteUserById(self, userid):
+        dao = ResearcherDAO()
+        if not dao.getUserInformationById(userid):
+            return jsonify(Error="User not found."), 404
+        else:
+            self.deleteAllExperimentsFromUserById(userid)
+            dao.deleteUserById(userid)
+            return jsonify(DeleteStatus="OK"), 200
+
+    def updateUserProfileById(self, userid, form):
         dao = ResearcherDAO()
         if not dao.getUserInformationById(userid):
             return jsonify(Error="User not found"), 404
@@ -117,19 +141,21 @@ class ResearcherHandler:
                 rcity = form['rcity']
 
                 if rname and rlast_name and remail and rpassword and rvocation and rdepartment and rinstitution and rcity:
-                    response = dao.updateUserInformationById(userid, rname, rlast_name, remail, rpassword, rvocation, rdepartment, rinstitution, rcity)
+                    dao.updateUserProfileById(userid, rname, rlast_name, remail, rpassword, rvocation, rdepartment, rinstitution, rcity)
                     result = self.build_researcher_attributes(userid, rname, rlast_name, remail, rpassword, rvocation, rdepartment, rinstitution, rcity)
                     return jsonify(Researcher=result), 200
                 else:
                     return jsonify(Error="Unexpected attributes in update request"), 400
 
-    def deleteUserById(self, userid):
+    def getUserProfileById(self, userid):
         dao = ResearcherDAO()
-        if not dao.getUserInformationById(userid):
-            return jsonify(Error="User not found."), 404
+        result = dao.getUserProfileById(userid)
+        if result is None:
+            return jsonify(Error="User doesn't exist!")
         else:
-            dao.deleteUserById(userid)
-            return jsonify(DeleteStatus="OK"), 200
+            result_map = self.build_researcher_dict(result)
+        return jsonify(Users=result_map)
+
 
     def getAllExperimentsFromUserById(self, userid):
         dao = ResearcherDAO()
@@ -145,9 +171,13 @@ class ResearcherHandler:
         if not dao.getUserInformationById(userid):
             return jsonify(Error="User not found."), 404
         elif not dao.getAllExperimentsFromUserById(userid):
-            return jsonify(Error="No experiments found."), 404
+            return jsonify(Error="No experiments found for this user."), 404
         else:
-            dao.deleteAllExperimentsFromUserById(userid)
+            if dao.getAllExperimentsFromUserById(userid):
+                experiment_table = dao.getAllExperimentsFromUserById(userid)
+                dao2 = ExperimentDAO()
+                for experiment in experiment_table:
+                    dao2.deleteExperimentById(experiment[0])
             return jsonify(DeleteStatus="OK"), 200
 
     def getExperimentFromUserById(self, userid, experimentid):
@@ -166,8 +196,29 @@ class ResearcherHandler:
         elif not dao.getAllExperimentsFromUserById(userid):
             return jsonify(Error="No experiments found."), 404
         else:
+            if dao.getAllPressurePointsFromMeasurementById(experimentid):
+                dao.deleteAllPressurePointsFromMeasurementById(experimentid)
+            if dao.getAllMeasurementsFromExperimentById(experimentid):
+                dao.deleteAllMeasurementsFromExperimentById(experimentid)
             dao.deleteExperimentFromUserById(userid, experimentid)
             return jsonify(DeleteStatus="OK"), 200
+
+    def storeExperimentFromUserById(self, userid, form):
+        dao = ResearcherDAO()
+        if len(form) != 4:
+            return jsonify(Error="Malformed post request"), 400
+        else:
+            rid = userid
+            ename = form['ename']
+            edescription = form['edescription']
+            etime = form['etime']
+            edate = form['edate']
+            if rid and ename and edescription and etime and edate:
+                eid = dao.storeExperimentFromUserById(rid, ename, edescription, etime, edate)
+                result = self.build_experiment_attributes(eid, rid, ename, edescription, etime, edate)
+                return jsonify(Experiment=result), 200
+            else:
+                return jsonify(Error="Unexpected attributes in post request"), 400
 
     def updateExperimentInformationById(self, userid, experimentid, form):
         dao = ResearcherDAO()
@@ -182,8 +233,8 @@ class ResearcherHandler:
                 etime = form['etime']
                 edate = form['edate']
                 if ename and edescription and etime and edate:
-                    response = dao.updateExperimentInformationById(userid, experimentid)
-                    result = self.build_experiment_attributes(experimentid, ename, edescription, etime, edate)
+                    dao.updateExperimentInformationById(userid, experimentid, ename, edescription, etime, edate)
+                    result = self.build_experiment_attributes(userid, experimentid, ename, edescription, etime, edate)
                     return jsonify(Experiment=result), 200
                 else:
                     return jsonify(Error="Unexpected attributes in update request"), 400

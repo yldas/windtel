@@ -4,30 +4,77 @@ from flask import jsonify
 
 class ExperimentDAO:
 
-    # def __init__(self):
-    #     connection_url = "dbname=%s user=%s" % (pg_config['dbname'], pg_config['user'], pg_config['password'])
-    #     self.conn = psycopg2.connect(connection_url)
+    conn = psycopg2.connect(host='127.0.0.1', database='WindTelDB',user='kahlil', password='password')
 
     def getAllExperiments(self):
-        result = [[1, 'Test Experiment', 'Data acquisition test', '00:00:35', '4/3/2019']]
+        cursor = self.conn.cursor()
+        query = "select * from experiment;"
+        cursor.execute(query)
+        result = []
+        for row in cursor:
+            result.append(row)
         return result
 
     def getExperimentInformationById(self, experimentid):
-        result = [1, 'Test Experiment', 'Data acquisition test', '00:00:35', '4/3/2019']
+        cursor = self.conn.cursor()
+        query = "select * from experiment where eid=%s;"
+        cursor.execute(query, (experimentid,))
+        result = cursor.fetchone()
         return result
 
     def getAllMeasurementsFromExperimentById(self, experimentid):
-        result = [[1, 12.8, 33.4, 0.97, 16.4, 1.23, 22, 78.4, 63]]
+        cursor = self.conn.cursor()
+        query = "select * from measurement where eid = %s;"
+        cursor.execute(query, (experimentid,))
+        result = []
+        for row in cursor:
+            result.append(row)
         return result
+
+    def getAllPressurePointsFromExperimentById(self, experimentid):
+        cursor = self.conn.cursor()
+        query = "select * from pressurepoint where mid = (select mid from measurement where eid = %s;);"
+        cursor.execute(query, (experimentid,))
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
+
+    def getAllPressurePointsFromMeasurementById(self, experimentid):
+        cursor = self.conn.cursor()
+        query = "select * from pressurepoint where mid = (select mid from measurement where eid = %s);"
+        cursor.execute(query, (experimentid,))
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
+
+    def deleteAllPressurePointsFromMeasurementById(self, experimentid):
+        cursor = self.conn.cursor()
+        query = "delete from pressurepoint where mid = (select mid from measurement where eid = %s);"
+        cursor.execute(query, (experimentid,))
+        self.conn.commit()
+        return
 
     def deleteAllMeasurementsFromExperimentById(self, experimentid):
-        result = [[1, 12.8, 33.4, 0.97, 16.4, 1.23, 22, 78.4, 63]]
-        return result
+        cursor = self.conn.cursor()
+        query = "delete from measurement where eid = %s;"
+        cursor.execute(query, (experimentid,))
+        self.conn.commit()
+        return
 
-    def updateExperimentInformationById(self, experimentid):
-        result = []
-        return result
+    def storeMeasurementFromExperimentById(self, exid, mliftforce, mdragfrontforce, mdragbackforce, mleftsideforce, mrightsideforce, mwindspeed, mtemperature, mhumidity):
+        cursor = self.conn.cursor()
+        query = "insert into measurement(eid, liftforce, dragfrontforce, dragbackforce, leftsideforce, rightsideforce, windspeed, \
+                    temperature, humidity) values (%s, %s, %s, %s, %s, %s, %s, %s, %s) returning mid;"
+        cursor.execute(query, (exid, mliftforce, mdragfrontforce, mdragbackforce, mleftsideforce, mrightsideforce, mwindspeed, mtemperature, mhumidity,))
+        mid = cursor.fetchone()[0]
+        self.conn.commit()
+        return mid
 
     def deleteExperimentById(self, experimentid):
-        result = []
-        return result
+        cursor = self.conn.cursor()
+        query = "delete from experiment where eid=%s;"
+        cursor.execute(query, (experimentid,))
+        self.conn.commit()
+        return

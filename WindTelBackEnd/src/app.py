@@ -9,7 +9,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# Default route
+# Default route - done
 @app.route('/')
 @app.route('/WindTel/')
 def greeting():
@@ -37,25 +37,33 @@ def loginResearcher():
 def getAllUsers():
     return ResearcherHandler().getAllUsers()
 
-#Get user information by id, update user information or delete the user
-@app.route('/WindTel/users/<int:userid>/', methods=['GET', 'DELETE', 'PUT'])
+#Get user information by id, update user information or delete the user - done
+@app.route('/WindTel/users/<int:userid>/', methods=['GET', 'DELETE'])
 def getUserInformationById(userid):
     if request.method == 'DELETE':
         return ResearcherHandler().deleteUserById(userid)
-    elif request.method == 'PUT':
-        return ResearcherHandler().updateUserInformationById(userid, request.json)
     else:
         return ResearcherHandler().getUserInformationById(userid)
 
-#Get experiments from a user by id or delete them
-@app.route('/WindTel/users/<int:userid>/experiments/', methods=['GET', 'DELETE'])
+#View user profile - done
+@app.route('/WindTel/users/<int:userid>/profile/', methods=['GET', 'PUT'])
+def getUserProfileById(userid):
+    if request.method == 'PUT':
+        return ResearcherHandler().updateUserProfileById(userid, request.json)
+    else:
+        return ResearcherHandler().getUserProfileById(userid)
+
+#Get experiments from a user by id or delete them - done
+@app.route('/WindTel/users/<int:userid>/experiments/', methods=['GET', 'DELETE', 'POST'])
 def getAllExperimentsFromUserById(userid):
     if request.method == 'DELETE':
         return ResearcherHandler().deleteAllExperimentsFromUserById(userid)
+    elif request.method == 'POST':
+        return ResearcherHandler().storeExperimentFromUserById(userid, request.json)
     else:
         return ResearcherHandler().getAllExperimentsFromUserById(userid)
 
-#Get experiment from a user by id, update it, or delete it
+#Get experiment from a user by id, update it, or delete it - done
 @app.route('/WindTel/users/<int:userid>/experiments/<int:experimentid>/', methods=['GET','DELETE','PUT'])
 def getExperimentFromUserById(userid, experimentid):
     if request.method == 'DELETE':
@@ -65,35 +73,35 @@ def getExperimentFromUserById(userid, experimentid):
     else:
         return ResearcherHandler().getExperimentFromUserById(userid, experimentid)
 
-#Get all experiments
+#Get all experiments - done
 @app.route('/WindTel/experiments/')
 def getAllExperiments():
     return ExperimentHandler().getAllExperiments()
 
-#Get experiment by id or delete them
+#Get experiment by id or delete them - done
 @app.route('/WindTel/experiments/<int:experimentid>/', methods=['GET', 'DELETE', 'PUT'])
 def getExperimentInformationById(experimentid):
     if request.method == 'DELETE':
         return ExperimentHandler().deleteExperimentById(experimentid)
-    elif request.method == 'PUT':
-        return ExperimentHandler().updateExperimentInformationById(experimentid, request.json)
     else:
         return ExperimentHandler().getExperimentInformationById(experimentid)
 
-#Get measurements of an experiment by id, update it, or delete them
-@app.route('/WindTel/experiments/<int:experimentid>/measurements/', methods=['GET', 'DELETE'])
+#Get measurements of an experiment by id, update it, or delete them - done
+@app.route('/WindTel/experiments/<int:experimentid>/measurements/', methods=['GET', 'DELETE', 'POST'])
 def getMeasurementsFromExperimentById(experimentid):
     if request.method == 'DELETE':
         return ExperimentHandler().deleteAllMeasurementsFromExperimentById(experimentid)
+    elif request.method == 'POST':
+        return ExperimentHandler().storeMeasurementFromExperimentById(experimentid, request.json)
     else:
         return ExperimentHandler().getAllMeasurementsFromExperimentById(experimentid)
 
-#Get all measurements obtained in the system
+#Get all measurements obtained in the system - done
 @app.route('/WindTel/measurements/')
 def getAllMeasurements():
     return MeasurementHandler().getAllMeasurements()
 
-#Get measurement by id
+#Get measurement by id - done
 @app.route('/WindTel/measurements/<int:measurementid>/', methods=['GET', 'DELETE'])
 def getMeasurementById(measurementid):
     if request.method == 'DELETE':
@@ -101,7 +109,17 @@ def getMeasurementById(measurementid):
     else:
         return MeasurementHandler().getMeasurementById(measurementid)
 
-#Get all pressure point measurements
+#Get all pressure point measurements by id - done
+@app.route('/WindTel/measurements/<int:measurementid>/pressurepoints/', methods=['GET', 'DELETE', 'POST'])
+def getPressurePointsById(measurementid):
+    if request.method == 'DELETE':
+        return PressurePointHandler().deleteAllPressurePointsById(measurementid)
+    elif request.method == 'POST':
+        return PressurePointHandler().storePressurePointById(measurementid, request.json)
+    else:
+        return PressurePointHandler().getPressurePointsById(measurementid)
+
+#Get all pressure point measurements - done
 @app.route('/WindTel/pressurepoints/', methods=['GET', 'DELETE'])
 def getAllPressurePoints():
     if request.method == 'DELETE':
@@ -109,7 +127,7 @@ def getAllPressurePoints():
     else:
         return PressurePointHandler().getAllPressurePoints()
 
-#Get pressure point by id
+#Get pressure point by id - done
 @app.route('/WindTel/pressurepoints/<int:pressurepointid>/', methods=['GET', 'DELETE'])
 def getPressurePointById(pressurepointid):
     if request.method == 'DELETE':
