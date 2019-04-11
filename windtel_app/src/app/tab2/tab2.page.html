@@ -14,7 +14,8 @@
         </ion-card-header>
     </ion-card>
     <ion-card>
-      <ion-card-content>
+        {{getCurrentUser()}}
+      <ion-card-content *ngIf="permissions != 'Pending'">
           <ion-list>
               <form (ngSubmit)="tryExperimentStart()" #experiment="ngForm">
               <ion-item>

@@ -1,9 +1,78 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>
-      Tab Three
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content></ion-content>
+    <ion-toolbar>
+      <ion-title>
+        Results
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content>
+      <ion-card class="welcome-card">
+        <ion-img src="assets/windtel_logo.png" style="display: block; width: 35%; height: auto; margin-left: auto; margin-right: auto;"></ion-img>
+      <ion-card-header>
+          <ion-card-title>Experiment Results</ion-card-title>
+      </ion-card-header>
+    </ion-card>
+    <ion-card>
+      {{getCurrentUser()}}
+      <ion-card-content *ngIf="permissions != 'Pending'">
+          <ion-list>
+              <ion-list-header>Options</ion-list-header>
+              <ion-item>
+                <ion-label>Chart Type</ion-label>
+                <ion-select [(ngModel)]="sel" [interfaceOptions]="customPopoverOptions" interface="popover" placeholder="Select One">
+                  <ion-select-option value="time-series">Time Series</ion-select-option>
+                  <ion-select-option value="scatter-plot">Scatter Plot</ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-card *ngIf="sel == 'time-series'">
+                  <ion-item>
+                  <ion-label>Parameter</ion-label>
+                  <ion-select [interfaceOptions]="customPopoverOptions" interface="popover">
+                    <ion-select-option value="pressure">Pressure</ion-select-option>
+                    <ion-select-option value="lift">Lift Force</ion-select-option>
+                    <ion-select-option value="dragfront">Drag Front Force</ion-select-option>
+                    <ion-select-option value="leftside">Left Side Force</ion-select-option>
+                    <ion-select-option value="rightside">Right Side Force</ion-select-option>
+                    <ion-select-option value="windspeed">Wind Speed</ion-select-option>
+                    <ion-select-option value="temperature">Temperature</ion-select-option>
+                    <ion-select-option value="humidity">Humidity</ion-select-option>
+                  </ion-select>
+                </ion-item>
+              </ion-card>
+              <ion-card *ngIf="sel == 'scatter-plot'">
+                  <ion-list>
+                  <ion-item>
+                  <ion-label>X</ion-label>
+                  <ion-select [interfaceOptions]="customPopoverOptions" interface="popover">
+                      <ion-select-option value="pressure">Pressure</ion-select-option>
+                      <ion-select-option value="lift">Lift Force</ion-select-option>
+                      <ion-select-option value="dragfront">Drag Front Force</ion-select-option>
+                      <ion-select-option value="leftside">Left Side Force</ion-select-option>
+                      <ion-select-option value="rightside">Right Side Force</ion-select-option>
+                      <ion-select-option value="windspeed">Wind Speed</ion-select-option>
+                      <ion-select-option value="temperature">Temperature</ion-select-option>
+                      <ion-select-option value="humidity">Humidity</ion-select-option>
+                  </ion-select>
+                  </ion-item>
+                  <ion-item>
+                  <ion-label>Y</ion-label>
+                  <ion-select [interfaceOptions]="customPopoverOptions" interface="popover">
+                    <ion-select-option value="pressure">Pressure</ion-select-option>
+                    <ion-select-option value="lift">Lift Force</ion-select-option>
+                    <ion-select-option value="dragfront">Drag Front Force</ion-select-option>
+                    <ion-select-option value="leftside">Left Side Force</ion-select-option>
+                    <ion-select-option value="rightside">Right Side Force</ion-select-option>
+                    <ion-select-option value="windspeed">Wind Speed</ion-select-option>
+                    <ion-select-option value="temperature">Temperature</ion-select-option>
+                    <ion-select-option value="humidity">Humidity</ion-select-option>
+                  </ion-select>
+                  </ion-item>
+                </ion-list>
+              </ion-card>
+          </ion-list>
+          <ion-button type="submit" [disabled]="!experiment.form.valid">Generate Results</ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ion-content>
+  
