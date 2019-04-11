@@ -11,11 +11,13 @@ import { User } from '../user';
 export class Tab1Page {
 
   currentUser: User;
+  permissions: string;
 
   constructor(private userService: UserService) { }
 
   getCurrentUser() {
     this.currentUser = this.userService.getCurrentUser();
+    this.permissions = this.currentUser.permissions;
   }
 
   ngOnInit() { }

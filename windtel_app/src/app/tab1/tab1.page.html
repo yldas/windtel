@@ -25,21 +25,37 @@
           </ion-item>
         </ion-card-content>
       </ion-card>
-    <ion-list lines="none">
-      <ion-list-header>
-        <ion-label>Get started</ion-label>
-      </ion-list-header>
-      <ion-item href="#">
-        <ion-icon slot="start" color="medium" name="book"></ion-icon>
-        <ion-label>User Guide</ion-label>
-      </ion-item>
-      <ion-item href="#">
-        <ion-icon slot="start" color="medium" name="build"></ion-icon>
-        <ion-label> Settings</ion-label>
-      </ion-item>
-      <ion-item href="#">
-        <ion-icon slot="start" color="medium" name="help"></ion-icon>
-        <ion-label>About</ion-label>
-      </ion-item>
-    </ion-list>
+      <ion-card>
+        <ion-card-content>
+            <ion-list lines="none">
+                <ion-list-header>
+                  <ion-label>Get started</ion-label>
+                </ion-list-header>
+                <ion-item href="#">
+                  <ion-icon slot="start" color="medium" name="book"></ion-icon>
+                  <ion-label>User Guide</ion-label>
+                </ion-item>
+                <ion-item *ngIf="permissions == 'Administrator' || permissions == 'Technician'" href="#">
+                  <ion-icon slot="start" color="medium" name="build"></ion-icon>
+                  <ion-label>Settings</ion-label>
+                </ion-item>
+                <ion-item *ngIf="permissions == 'Administrator'" href="#">
+                    <ion-icon slot="start" color="medium" name="people"></ion-icon>
+                    <ion-label>Manage Users</ion-label>
+                  </ion-item>
+                  <ion-item *ngIf="permissions == 'Administrator'" href="#">
+                      <ion-icon slot="start" color="medium" name="folder-open"></ion-icon>
+                      <ion-label>Manage Files</ion-label>
+                    </ion-item>
+                    <ion-item *ngIf="permissions == 'Technician'" href="#">
+                        <ion-icon slot="start" color="medium" name="medkit"></ion-icon>
+                        <ion-label>Diagnostics</ion-label>
+                      </ion-item>
+                <ion-item href="#">
+                  <ion-icon slot="start" color="medium" name="help"></ion-icon>
+                  <ion-label>About</ion-label>
+                </ion-item>
+              </ion-list>
+        </ion-card-content>
+      </ion-card>
 </ion-content>
