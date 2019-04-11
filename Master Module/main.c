@@ -14,21 +14,16 @@
 /* Slave Address for I2C Slave */
 #define SLAVE_ADDRESS_BALANCE       0x000A
 #define SLAVE_ADDRESS_PRESSURE      0x000B
-#define SLAVE_ADDRESS_DYNAMIC       0x000C
 #define NUM_OF_REC_BYTES_BALANCE     9
 #define NUM_OF_REC_BYTES_PRESSURE   13
-#define NUM_OF_REC_BYTES_DYNAMIC    11
 
 /* Variables */
 const uint8_t TXBalance[] = {0x15};
 const uint8_t TXPressure[] = {0x17};
-const uint8_t TXDynamic[] = {0x19};
 static char RXBalance[NUM_OF_REC_BYTES_BALANCE];
 static char RXPressure[NUM_OF_REC_BYTES_PRESSURE];
-static char RXDynamic[NUM_OF_REC_BYTES_DYNAMIC];
 static volatile uint32_t xferIndexBalance;
 static volatile uint32_t xferIndexPressure;
-static volatile uint32_t xferIndexDynamic;
 
 // Graphic library context
 Graphics_Context g_sContext;
@@ -51,6 +46,11 @@ int humidSample = 0;
 int ExperimentStatus = 0;
 int secondsPassed = 0;
 int acquiredMeasurementDuration = 0;
+int diagnosticFlag = 0;
+int communicationFailureCounter = 5;
+int checkCommunication = 0;
+
+bool diagnosticPressure, diagnosticBalance, diagnosticDynamic = false;
 
 bool balanceSelected, pressureSelected, tempSelected, humidSelected, speedSelected = false;
 /* I2C Master Configuration Parameter */
@@ -106,12 +106,13 @@ void main(void){
     MAP_Timer_A_configureUpMode(TIMER_A1_BASE, &upConfig);
     MAP_Timer_A_configureUpMode(TIMER_A0_BASE, &AcquisitionTimeConfig);
 
+    P4->DIR |= BIT2;
+    P4->OUT &= ~BIT2;
+
     P3->DIR |= BIT6+BIT7;
     P6->DIR |= BIT4+BIT5+BIT6+BIT7;
 
     //    Select I2C Pin Mode
-    MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P3,
-                                                   GPIO_PIN6 + GPIO_PIN7, GPIO_PRIMARY_MODULE_FUNCTION);
     MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P6,
                                                    GPIO_PIN4 + GPIO_PIN5, GPIO_PRIMARY_MODULE_FUNCTION);
     MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P6,
@@ -205,10 +206,12 @@ void PORT5_IRQHandler(void){
                     cursor = 1;
             }
             else if(menuIndex == 12){
-                nextConfirmation(g_sContext,rect,cursor);
-                cursor++;
-                if(cursor == 5)
-                    cursor = 1;
+                if(ExperimentStatus == 0){
+                    nextConfirmation(g_sContext,rect,cursor);
+                    cursor++;
+                    if(cursor == 5)
+                        cursor = 1;
+                }
             }
         }
     }
@@ -263,10 +266,12 @@ void PORT5_IRQHandler(void){
                 cursor = getMeasurmentsToSample()+2;
         }
         else if(menuIndex == 12){
-            previousConfirmation(g_sContext,rect,cursor);
-            cursor--;
-            if(cursor == 0)
-                cursor = 4;
+            if(ExperimentStatus == 0){
+                previousConfirmation(g_sContext,rect,cursor);
+                cursor--;
+                if(cursor == 0)
+                    cursor = 4;
+            }
         }
     }
 
@@ -285,9 +290,16 @@ void PORT5_IRQHandler(void){
                 drawSpeedControlMenu(g_sContext, rect);
                 cursor = 1;
                 menuIndex = 4;
-                xferIndexDynamic = 0;
-                I2C_Init(EUSCI_B2_BASE,&i2cConfig,SLAVE_ADDRESS_DYNAMIC,INT_EUSCIB2,RXDynamic, NUM_OF_REC_BYTES_DYNAMIC);
-                I2C_StartCommunication(EUSCI_B2_BASE,TXDynamic);
+                P4->OUT |= BIT2;
+                updateWindSpeed(g_sContext);
+            }
+            if(cursor == 5){
+                drawDiagnosticMessage(g_sContext);
+                diagnosticFlag = checkCommunication = 1;
+                cursor = 1;
+                menuIndex = 5;
+                MAP_Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
+                MAP_Interrupt_enableMaster();
             }
         }
         else if(menuIndex == 3){
@@ -337,6 +349,16 @@ void PORT5_IRQHandler(void){
                 cursor = 1;
             }
         }
+        else if(menuIndex == 5){
+            if(cursor == 1){
+                drawMainMenu(g_sContext,rect);
+                menuIndex = 1;
+                cursor = 1;
+                diagnosticFlag = checkCommunication = 0;
+                diagnosticPressure = false;
+                diagnosticBalance = false;
+            }
+        }
         else if(menuIndex == 6){
             if(cursor == 1){
                 drawPressureMenu(g_sContext,rect);
@@ -361,26 +383,26 @@ void PORT5_IRQHandler(void){
                 if(selectedSpeed_Temp[0]){
                     deselectTempHumid(g_sContext, rect, cursor);
                     selectedSpeed_Temp[0] = 0;
-                    tempSelected = false;
+                    humidSelected = false;
                 }
 
                 else{
                     selectTempHumid(g_sContext, rect, cursor);
                     selectedSpeed_Temp[0] = 1;
-                    tempSelected = true;
+                    humidSelected = true;
                 }
             }
             if(cursor == 4){
                 if(selectedSpeed_Temp[1]){
                     deselectTempHumid(g_sContext, rect, cursor);
                     selectedSpeed_Temp[1] = 0;
-                    humidSelected = false;
+                    tempSelected = false;
                 }
 
                 else{
                     selectTempHumid(g_sContext, rect, cursor);
                     selectedSpeed_Temp[1] = 1;
-                    humidSelected = true;
+                    tempSelected = true;
                 }
             }
             if(cursor == 5){
@@ -634,6 +656,9 @@ void PORT5_IRQHandler(void){
                 {
                     drawAcquiredMesurementsMenu(g_sContext,rect);
                     menuIndex = 13;
+                    cursor = 1;
+                    ExperimentStatus = 0;
+                    clearNumberOfExperiments();
                 }
                 else{
                     ExperimentStatus = 1;
@@ -649,12 +674,22 @@ void PORT5_IRQHandler(void){
                 drawSampleMenu(g_sContext,rect, pressureSelected, balanceSelected, tempSelected, humidSelected, speedSelected);
                 menuIndex = 11;
                 cursor = 1;
+                clearNumberOfExperiments();
             }
             else if(cursor == 4){
                 drawMainMenu(g_sContext,rect);
                 menuIndex = 1;
                 cursor = 1;
+                clearNumberOfExperiments();
             }
+        }
+        else if(menuIndex == 13){
+            if(cursor == 1){
+                drawMainMenu(g_sContext,rect);
+                menuIndex = 1;
+                cursor = 1;
+            }
+
         }
     }
     if(P5->IFG & BIT7 && !on_off){
@@ -684,26 +719,48 @@ void PORT5_IRQHandler(void){
 
 void TA0_0_IRQHandler(void)
 {
-    if(secondsPassed){
-        secondsPassed--;
-        updateAcquisitionTime(g_sContext,acquiredMeasurementDuration-secondsPassed);
-        if((acquiredMeasurementDuration-secondsPassed) == 5){
-            xferIndexDynamic = xferIndexBalance = xferIndexPressure = 0;
+    if(diagnosticFlag){
+        if(checkCommunication){
+            P4->OUT |= BIT2;
+            xferIndexBalance = xferIndexPressure = 0;
             I2C_Init(EUSCI_B1_BASE,&i2cConfig,SLAVE_ADDRESS_BALANCE,INT_EUSCIB1,RXBalance, NUM_OF_REC_BYTES_BALANCE);
-            I2C_Init(EUSCI_B2_BASE,&i2cConfig,SLAVE_ADDRESS_DYNAMIC,INT_EUSCIB2,RXDynamic, NUM_OF_REC_BYTES_DYNAMIC);
-            I2C_Init(EUSCI_B3_BASE,&i2cConfig,SLAVE_ADDRESS_PRESSURE,INT_EUSCIB3,RXPressure, NUM_OF_REC_BYTES_PRESSURE);
             I2C_StartCommunication(EUSCI_B1_BASE,TXBalance);
-            I2C_StartCommunication(EUSCI_B2_BASE,TXDynamic);
+            I2C_Init(EUSCI_B3_BASE,&i2cConfig,SLAVE_ADDRESS_PRESSURE,INT_EUSCIB3,RXPressure, NUM_OF_REC_BYTES_PRESSURE);
             I2C_StartCommunication(EUSCI_B3_BASE,TXPressure);
+            checkCommunication = 0;
+        }
+        if(communicationFailureCounter)
+            communicationFailureCounter--;
+        else{
+            drawDiagnosticMenu(g_sContext, rect, diagnosticPressure, diagnosticBalance);
+            MAP_Timer_A_stopTimer(TIMER_A0_BASE);
+            P4->OUT &= ~BIT2;
+            communicationFailureCounter = 10;
+            checkCommunication = 0;
+            diagnosticFlag = 0;
         }
     }
     else{
-        ExperimentStatus = 2;
-        ViewResultsMessage(g_sContext,rect);
-        MAP_Timer_A_stopTimer(TIMER_A0_BASE);
+        if(secondsPassed){
+            secondsPassed--;
+            updateAcquisitionTime(g_sContext,acquiredMeasurementDuration-secondsPassed);
+            if((acquiredMeasurementDuration-secondsPassed) == 1){
+                xferIndexBalance = xferIndexPressure = 0;
+                P4->OUT |= BIT2;
+                I2C_Init(EUSCI_B1_BASE,&i2cConfig,SLAVE_ADDRESS_BALANCE,INT_EUSCIB1,RXBalance, NUM_OF_REC_BYTES_BALANCE);
+                I2C_StartCommunication(EUSCI_B1_BASE,TXBalance);
+                I2C_Init(EUSCI_B3_BASE,&i2cConfig,SLAVE_ADDRESS_PRESSURE,INT_EUSCIB3,RXPressure, NUM_OF_REC_BYTES_PRESSURE);
+                I2C_StartCommunication(EUSCI_B3_BASE,TXPressure);
+            }
+        }
+        else{
+            ExperimentStatus = 2;
+            ViewResultsMessage(g_sContext,rect);
+            MAP_Timer_A_stopTimer(TIMER_A0_BASE);
+            P4->OUT &= ~BIT2;
+        }
+
     }
-
-
     MAP_Timer_A_clearCaptureCompareInterrupt(TIMER_A0_BASE,TIMER_A_CAPTURECOMPARE_REGISTER_0);
 }
 
@@ -754,56 +811,12 @@ void EUSCIB1_IRQHandler(void)
         MAP_I2C_disableInterrupt(EUSCI_B1_BASE,
                                  EUSCI_B_I2C_STOP_INTERRUPT);
     }
-    if(xferIndexBalance == NUM_OF_REC_BYTES_BALANCE-1){
+    if(xferIndexBalance == NUM_OF_REC_BYTES_BALANCE-2){
+        if(diagnosticFlag)
+            diagnosticBalance = true;
         if(menuIndex == 12)
             setBalanceForces(RXBalance);
     }
-}
-
-void EUSCIB2_IRQHandler(void)
-{
-    uint_fast16_t status;
-
-    status = MAP_I2C_getEnabledInterruptStatus(EUSCI_B2_BASE);
-    MAP_I2C_clearInterruptFlag(EUSCI_B2_BASE, status);
-
-    /* Receives bytes into the receive buffer. If we have received all bytes,
-     * send a STOP condition */
-    if (status & EUSCI_B_I2C_RECEIVE_INTERRUPT0)
-    {
-        if (xferIndexDynamic == NUM_OF_REC_BYTES_DYNAMIC - 2)
-        {
-            MAP_I2C_disableInterrupt(EUSCI_B2_BASE,
-                                     EUSCI_B_I2C_RECEIVE_INTERRUPT0);
-            MAP_I2C_enableInterrupt(EUSCI_B2_BASE, EUSCI_B_I2C_STOP_INTERRUPT);
-
-            /*
-             * Switch order so that stop is being set during reception of last
-             * byte read byte so that next byte can be read.
-             */
-            MAP_I2C_masterReceiveMultiByteStop(EUSCI_B2_BASE);
-            RXDynamic[xferIndexDynamic++] = MAP_I2C_masterReceiveMultiByteNext(
-                    EUSCI_B2_BASE);
-        } else
-        {
-            RXDynamic[xferIndexDynamic++] = MAP_I2C_masterReceiveMultiByteNext(
-                    EUSCI_B2_BASE);
-        }
-    }
-    else if (status & EUSCI_B_I2C_STOP_INTERRUPT)
-    {
-        MAP_Interrupt_disableSleepOnIsrExit();
-        MAP_I2C_disableInterrupt(EUSCI_B2_BASE,
-                                 EUSCI_B_I2C_STOP_INTERRUPT);
-    }
-    if(xferIndexDynamic == NUM_OF_REC_BYTES_DYNAMIC-1){
-        if(menuIndex == 4)
-            updateWindSpeed(g_sContext,RXDynamic);
-        if(menuIndex == 12){
-            setWindSpeed(RXDynamic);
-        }
-    }
-
 }
 
 void EUSCIB3_IRQHandler(void)
@@ -842,7 +855,10 @@ void EUSCIB3_IRQHandler(void)
         MAP_I2C_disableInterrupt(EUSCI_B3_BASE,
                                  EUSCI_B_I2C_STOP_INTERRUPT);
     }
-    if(xferIndexPressure == NUM_OF_REC_BYTES_PRESSURE-1){
+    if(xferIndexPressure == NUM_OF_REC_BYTES_PRESSURE-2){
+        if(diagnosticFlag){
+            diagnosticPressure = true;
+        }
         if(menuIndex ==12)
             setAtmosphericPressure(RXPressure);
     }

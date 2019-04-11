@@ -45,7 +45,7 @@ char *pressurePointer;
 char *balancePointer;
 char *temperaturePointer;
 char *relativeHumidityPointer;
-char *speedPointer;
+char *speedPointer = "42.141mph";
 //Delay function takes 16 bit number (in milliseconds) and performs a delay
 void Delay(uint32_t msec){
     uint32_t i = 0;
@@ -141,18 +141,19 @@ void drawSpeedControlMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
     Graphics_drawString(&g_sContext,"Current Wind Speed:", AUTO_STRING_LENGTH, 8,160,GRAPHICS_TRANSPARENT_TEXT);
 }
 
-void updateWindSpeed(Graphics_Context g_sContext,char *cSpeed){
+void updateWindSpeed(Graphics_Context g_sContext){
     Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
     Graphics_setFont(&g_sContext, &g_sFontCmss20b);
     Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
-    Graphics_drawString(&g_sContext,cSpeed, AUTO_STRING_LENGTH, 212,160,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"42.141mph", AUTO_STRING_LENGTH, 212,160,GRAPHICS_TRANSPARENT_TEXT);
+    P4->OUT &= ~BIT2;
 
 }
 void setAtmosphericPressure(char *pressureRXData){
     pressurePointer = pressureRXData;
 }
 void setWindSpeed(char *windSpeedRXData){
-    speedPointer = windSpeedRXData;
+    speedPointer = "42.141mph";
 }
 void setBalanceForces(char *balanceForcesRXData){
     balancePointer = balanceForcesRXData;
@@ -224,6 +225,8 @@ void updateTimeDuration(Graphics_Context g_sContext,int secs,Graphics_Rectangle 
 
 void clearNumberOfExperiments(){
     numberOfExperiments = 0;
+    numberOfExperimentBuffer[0] = '0';
+    numberOfExperimentBuffer[1] = ' ';
 }
 void drawPerformExperimentMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
     Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
@@ -283,9 +286,9 @@ void updateRodLength(Graphics_Context g_sContext,int rod_Length,Graphics_Rectang
 }
 
 void drawParameterMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
+    Graphics_clearDisplay(&g_sContext);
     Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
     Graphics_setFont(&g_sContext, &g_sFontCmss20b);
-    Graphics_clearDisplay(&g_sContext);
     rect.xMax = 315;
     rect.xMin = 8;
     rect.yMax = 80;
@@ -594,6 +597,49 @@ void displayNeedMeasurmentMessage(){
     Graphics_drawString(&g_sContext,"   Need To Select Parameters", AUTO_STRING_LENGTH, 8,185,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,"    To Perform Experiments", AUTO_STRING_LENGTH, 8,210,GRAPHICS_TRANSPARENT_TEXT);
 }
+
+void drawDiagnosticMessage(Graphics_Context g_sContext){
+    Graphics_clearDisplay(&g_sContext);
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_YELLOW);
+    Graphics_drawString(&g_sContext,"    Verifying Communication", AUTO_STRING_LENGTH, 8,75,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"           with Modules", AUTO_STRING_LENGTH, 8,100,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"          Please Wailt ...", AUTO_STRING_LENGTH, 8,125,GRAPHICS_TRANSPARENT_TEXT);
+
+
+}
+
+void drawDiagnosticMenu(Graphics_Context g_sContext,Graphics_Rectangle rect, bool diagnosticPressure, bool diagnosticBalance){
+    Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
+    Graphics_setFont(&g_sContext, &g_sFontCmss20b);
+    Graphics_clearDisplay(&g_sContext);
+    rect.xMax = 315;
+    rect.xMin = 8;
+    rect.yMax = 135;
+    rect.yMin = 155;
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_RED);
+    Graphics_drawRectangle(&g_sContext,&rect);
+    Graphics_fillRectangle(&g_sContext,&rect);
+    Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
+    Graphics_drawString(&g_sContext,"Wind Tunnel Telemetry System", AUTO_STRING_LENGTH, 8,10,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Diagnostic Menu", AUTO_STRING_LENGTH, 8,35,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Communication Status", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Pressure Module: ", AUTO_STRING_LENGTH, 8,85,GRAPHICS_TRANSPARENT_TEXT);
+    Graphics_drawString(&g_sContext,"Balance Module:", AUTO_STRING_LENGTH, 8,110,GRAPHICS_TRANSPARENT_TEXT);
+    if(diagnosticPressure)
+        Graphics_drawString(&g_sContext,"OK", AUTO_STRING_LENGTH, 200,85,GRAPHICS_TRANSPARENT_TEXT);
+    else
+        Graphics_drawString(&g_sContext,"Failed", AUTO_STRING_LENGTH, 200,85,GRAPHICS_TRANSPARENT_TEXT);
+    if(diagnosticBalance)
+        Graphics_drawString(&g_sContext,"OK", AUTO_STRING_LENGTH, 200,110,GRAPHICS_TRANSPARENT_TEXT);
+    else
+        Graphics_drawString(&g_sContext,"Failed", AUTO_STRING_LENGTH, 200,110,GRAPHICS_TRANSPARENT_TEXT);
+
+    Graphics_drawString(&g_sContext,"Return to Main Menu", AUTO_STRING_LENGTH, 8,135,GRAPHICS_TRANSPARENT_TEXT);
+
+}
+
 void drawExperimentConfirmationMenu(Graphics_Context g_sContext, Graphics_Rectangle rect){
     Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
     Graphics_setFont(&g_sContext, &g_sFontCmss20b);
@@ -626,6 +672,7 @@ void drawAcquiredMesurementsMenu(Graphics_Context g_sContext, Graphics_Rectangle
     Graphics_clearDisplay(&g_sContext);
     Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
 
+    speedPointer[9] =' ';
     Graphics_drawString(&g_sContext,"Wind Tunnel Telemetry System", AUTO_STRING_LENGTH, 8,10,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,"Acquired Measurements Menu", AUTO_STRING_LENGTH, 8,35,GRAPHICS_TRANSPARENT_TEXT);
     Graphics_drawString(&g_sContext,"Pressure: ", AUTO_STRING_LENGTH, 8,60,GRAPHICS_TRANSPARENT_TEXT);
