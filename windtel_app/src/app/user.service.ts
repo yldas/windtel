@@ -15,7 +15,7 @@ const httpOptions = {
 })
 export class UserService {
 
-  current_user: User;
+  public current_user: User;
   private usersUrl = 'api/users';   // URL to web api
 
   registeredUsers: User[];
