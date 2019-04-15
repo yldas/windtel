@@ -12,61 +12,62 @@
     </div>
     <ion-card>
         <ion-card-header>
-          <ion-card-title>User Sign Up</ion-card-title>
+          <ion-card-title>Sign up for an account</ion-card-title>
         </ion-card-header>
       
         <ion-card-content>
             <form (ngSubmit)="tryRegister()" #login="ngForm">
                 <ion-item>
+                    <div *ngIf="taken">An account already exists for this email.</div>
                     <ion-label position="floating">Email</ion-label>
                     <ion-input type="email" autofocus="true" 
                                placeholder="misael.valentin@upr.edu"
-                               [(ngModel)]="model.email" name="email" required>
+                               [(ngModel)]="email" name="email" required pattern="[a-zA-Z0-9.-_]{1,}@[a-zA-Z.-]{2,}[.]{1}[a-zA-Z]{2,}">
                     </ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="floating">Password</ion-label>
                     <ion-input type="password" minlength="8"
-                               [(ngModel)]="model.password" name="password" required>
+                               [(ngModel)]="password" name="password" required>
                     </ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="floating">First Name</ion-label>
                     <ion-input placeholder="Misael"
-                               [(ngModel)]="model.first" name="first" required>
+                               [(ngModel)]="firstName" name="first" required>
                     </ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="floating">Last Name</ion-label>
                     <ion-input placeholder="Valentin"
-                               [(ngModel)]="model.last" name="last" required>
+                               [(ngModel)]="lastName" name="last" required>
                     </ion-input>
                 </ion-item>
                 <ion-item>
                   <ion-label position="floating">Vocation</ion-label>
                   <ion-input placeholder="Professor"
-                             [(ngModel)]="model.vocation" name="vocation" required>
+                             [(ngModel)]="vocation" name="vocation" required>
                   </ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label position="floating">Department</ion-label>
                     <ion-input placeholder="INCI"
-                           [(ngModel)]="model.department" name="department" required>
+                           [(ngModel)]="department" name="department" required>
                     </ion-input>
                 </ion-item>
                 <ion-item>
                   <ion-label position="floating">Institution</ion-label>
                   <ion-input placeholder="UPRM"
-                         [(ngModel)]="model.institution" name="institution" required>
+                         [(ngModel)]="institution" name="institution" required>
                   </ion-input>
               </ion-item>
               <ion-item>
                 <ion-label position="floating">City</ion-label>
                 <ion-input placeholder="Aguadilla"
-                       [(ngModel)]="model.city" name="city">
+                       [(ngModel)]="city" name="city">
                 </ion-input>
             </ion-item>
-                <ion-button type="submit" [disabled]="!login.form.valid" routerLink="../tabs">Sign Up</ion-button>
+                <ion-button type="submit" [disabled]="!login.form.valid">Sign Up</ion-button>
             </form>
         </ion-card-content>
       </ion-card>

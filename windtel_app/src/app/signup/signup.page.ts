@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { User } from '../user';
 import { UserService } from '../user.service';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -10,22 +12,47 @@ import { UserService } from '../user.service';
 })
 export class SignupPage implements OnInit {
 
-  model = new User(1, 'Misael', 'Valentin', 'misael.valentin@upr.edu', 'Student', 'ICOM', 'UPRM', 'Aguadilla', '12345678', 'Researcher');
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  vocation: string;
+  department: string;
+  institution: string;
+  city: string;
+
+  userExists: boolean = false;
   registered_users: User[];
+  newUser: User;
+  taken: boolean = false;
 
-  currentUser: User;
-
-  submitted = false;
-
-  tryRegister() {
-    this.currentUser = new User(1, this.model.first, this.model.last, this.model.email, this.model.vocation, this.model.department, this.model.institution, this.model.city, this.model.password, 'Researcher');
-    this.userService.registerUser(this.currentUser);
+  tryRegister(): void {
+    this.newUser = this.registered_users.find(newUser => newUser.email === this.email);
+    if (this.newUser) {
+      this.taken = true;
+    } else {
+    this.userService.registerUser(
+      { email: this.email, password: this.password, first: this.firstName, last: this.lastName,
+        vocation: this.vocation, institution: this.institution, city: this.city, permissions: 'Researcher' } as User )
+        .subscribe(user => { 
+          this.registered_users.push(user);
+          console.log("Registration successful");
+        })
+        this.register();
+      }
   }
 
-  onSubmit() {
-    this.submitted = true;
-    console.log(this.currentUser.email);
-    this.userService.setCurrentUser(this.currentUser);
+  register() {    
+    this.authService.login().subscribe(() => {
+      if (this.authService.isLoggedIn) {
+        let redirect = this.authService.redirectUrl ? this.router.parseUrl
+        (this.authService.redirectUrl) : '/';
+
+        // Redirect the user
+        this.router.navigateByUrl(redirect);
+        this.taken = false;
+      }
+    });
   }
 
   get diagnostic() { return JSON.stringify(this.userService.getCurrentUser()); }
@@ -35,10 +62,12 @@ export class SignupPage implements OnInit {
         .subscribe(registered_users => this.registered_users = registered_users);
   }
 
-  constructor(private userService: UserService) { }
+  constructor(
+    public authService: AuthService,
+    public router: Router,
+    private userService: UserService) { }
 
   ngOnInit() {
     this.getRegisteredUsers();
   }
-
 }

@@ -39,13 +39,13 @@ export class UserService {
   getUser(email: string, password: string, registeredUsers: User[]): User {
     this.current_user = registeredUsers.find(current_user => current_user.email === email && current_user.password == password); 
     if (this.current_user) {
-      return this.current_user;
+      return this.current_user
     }
   }
 
-  registerUser(user: User): Observable<any> {
-    return this.http.post(this.usersUrl, user, httpOptions).pipe(
-      tap((newUser: User) => this.log(`registered user id=${newUser.id}`)),
+  registerUser(user: User): Observable<User> {
+    return this.http.post<User>(this.usersUrl, user, httpOptions).pipe(
+      tap((newUser: User) => console.log(`added user w/id=${newUser.id}`)),
       catchError(this.handleError<User>('registerUser'))
     );
   }

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, NavigationExtras } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { User } from '../user';
 import { UserService } from '../user.service';
@@ -14,21 +14,24 @@ export class LoginPage implements OnInit {
 
   email: string;
   password: string;
-
   registered_users: User[];
-
   incorrectLogin: boolean = false;
   currentUser: User;
 
   tryLogin() {
-    this.currentUser = this.userService.getUser(this.email, this.password, this.registered_users);
-    if (this.currentUser) {
-      this.userService.setCurrentUser(this.currentUser);
-      this.login();
-    } else {
-      this.incorrectLogin = true;
-    }
-  }
+    this.userService.getRegisteredUsers()
+        .subscribe(registered_users => {
+          this.registered_users = registered_users;
+          console.log("Fetched users");
+          this.currentUser = this.userService.getUser(this.email, this.password, this.registered_users);
+          if (this.currentUser) {
+            this.userService.setCurrentUser(this.currentUser);
+            this.login();
+          } else {
+            this.incorrectLogin = true;
+          }
+        })
+      }
 
   login() {    
     this.authService.login().subscribe(() => {
@@ -46,7 +49,10 @@ export class LoginPage implements OnInit {
 
   getRegisteredUsers(): void {
     this.userService.getRegisteredUsers()
-        .subscribe(registered_users => this.registered_users = registered_users);
+        .subscribe(registered_users => {
+          this.registered_users = registered_users;
+          console.log("Fetched users");
+        })
   }
 
   constructor(
@@ -57,5 +63,4 @@ export class LoginPage implements OnInit {
   ngOnInit() {
     this.getRegisteredUsers();
   }
-
 }
