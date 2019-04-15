@@ -36,18 +36,12 @@ export class UserService {
     return this.current_user;
   }
 
-  getUser(email: string, password: string, registeredUsers: User[]): Observable<User> {
+  getUser(email: string, password: string, registeredUsers: User[]): User {
     this.current_user = registeredUsers.find(current_user => current_user.email === email && current_user.password == password); 
     if (this.current_user) {
-      return of(this.current_user);
+      return this.current_user;
     }
   }
-
-  /*
-  getUserOld(email: string): Observable<User> {
-    return of (USERS.find(current_user => current_user.email === email));
-  }
-  */
 
   registerUser(user: User): Observable<any> {
     return this.http.post(this.usersUrl, user, httpOptions).pipe(

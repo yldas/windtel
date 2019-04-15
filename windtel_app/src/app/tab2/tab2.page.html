@@ -17,7 +17,6 @@
         {{getCurrentUser()}}
       <ion-card-content *ngIf="permissions != 'Pending'">
           <ion-list>
-              <form (ngSubmit)="tryExperimentStart()" #experiment="ngForm">
               <ion-item>
                 <ion-label position="floating">Rod length</ion-label>
                 <ion-input [(ngModel)]="model.rodLength" name="rodLength" required></ion-input>
@@ -35,15 +34,10 @@
                         <ion-label>Barometric Pressure</ion-label>
                         <ion-checkbox [(ngModel)]="pressureCheck" slot="end"></ion-checkbox>
                       </ion-item>
-                      <div *ngIf="pressureCheck">
-                          <ion-list>
+                          <ion-list *ngIf="pressureCheck">
                               <ion-item>
                                   <ion-label position="floating">Samples</ion-label>
                                   <ion-input slot="end"></ion-input>
-                              </ion-item>
-                              <ion-item>
-                                  <ion-label>All</ion-label>
-                                  <ion-checkbox [(ngModel)]="allPressures" slot="end"></ion-checkbox>
                               </ion-item>
                               <ion-item>
                                   <ion-label>Sensor 1</ion-label>
@@ -78,7 +72,6 @@
                                   <ion-checkbox [checked]="allPressures" slot="end"></ion-checkbox>
                               </ion-item>
                           </ion-list>
-                        </div>
                     <ion-item>
                         <ion-label>Wind Forces</ion-label>
                         <ion-checkbox [(ngModel)]="forceCheck" slot="end"></ion-checkbox>
@@ -88,10 +81,6 @@
                             <ion-item>
                                 <ion-label position="floating">Samples</ion-label>
                                 <ion-input slot="end"></ion-input>
-                            </ion-item>
-                            <ion-item>
-                                <ion-label>All</ion-label>
-                                <ion-checkbox [(ngModel)]="allForces" slot="end"></ion-checkbox>
                             </ion-item>
                             <ion-item>
                                 <ion-label>Drag front</ion-label>
@@ -148,7 +137,6 @@
                 </ion-list>
               </ion-item>
               <ion-button type="submit" [disabled]="!experiment.form.valid">Start Experiment</ion-button>
-          </form>
           </ion-list>
       </ion-card-content>
     </ion-card>

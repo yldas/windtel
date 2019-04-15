@@ -32,7 +32,6 @@ export class InMemoryDataService implements InMemoryDbService {
       { id: 3, point: '20 P', sensorNum: 3, measurementid: 3 },
       { id: 4, point: '20 P', sensorNum: 4, measurementid: 4 }
     ]
-    console.log('Created DB');
     return {users, experiments, measurements, pressurePoint};
   }
 

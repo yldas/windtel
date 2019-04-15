@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { Router, NavigationExtras } from '@angular/router';
 
 import { User } from '../user';
 import { UserService } from '../user.service';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -10,36 +12,47 @@ import { UserService } from '../user.service';
 })
 export class LoginPage implements OnInit {
 
-  model = new User(1, 'Misael', 'Valentin', 'misael.valentin@upr.edu', 'Student', 'ICOM', 'UPRM', 'Aguadilla', '12345678', 'Researcher');
+  email: string;
+  password: string;
 
   registered_users: User[];
 
+  incorrectLogin: boolean = false;
   currentUser: User;
 
-  submitted = false;
-
   tryLogin() {
-    //this.getRegisteredUsers();
-    this.userService.getUser(this.model.email, this.model.password, this.registered_users)
-        .subscribe(currentUser => this.currentUser = currentUser);
-    this.onSubmit();
+    this.currentUser = this.userService.getUser(this.email, this.password, this.registered_users);
+    if (this.currentUser) {
+      this.userService.setCurrentUser(this.currentUser);
+      this.login();
+    } else {
+      this.incorrectLogin = true;
+    }
   }
 
-  onSubmit() {
-    this.submitted = true;
-    console.log(this.currentUser.email);
-    this.userService.setCurrentUser(this.currentUser);
-  }
+  login() {    
+    this.authService.login().subscribe(() => {
+      if (this.authService.isLoggedIn) {
+        let redirect = this.authService.redirectUrl ? this.router.parseUrl
+        (this.authService.redirectUrl) : '/tabs';
 
-  // TODO: Remove this when we're done
-  get diagnostic() { return JSON.stringify(this.userService.getCurrentUser()); }
+        // Redirect the user
+        console.log("Logged in");
+        this.router.navigateByUrl(redirect);
+        this.incorrectLogin = false;
+      }
+    });
+  }
 
   getRegisteredUsers(): void {
     this.userService.getRegisteredUsers()
         .subscribe(registered_users => this.registered_users = registered_users);
   }
 
-  constructor(private userService: UserService) { }
+  constructor(
+    public authService: AuthService,
+    public router: Router,
+    private userService: UserService) { }
 
   ngOnInit() {
     this.getRegisteredUsers();
