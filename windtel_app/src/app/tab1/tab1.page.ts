@@ -18,9 +18,10 @@ export class Tab1Page {
     public router: Router,
     private userService: UserService) { }
 
-  navigate() {
+  navigate(url: string) {
     this.userService.setCurrentUser(this.currentUser);
-    this.router.navigateByUrl("settings");
+    console.log(url);
+    this.router.navigateByUrl(url);
   }
 
   getCurrentUser() {

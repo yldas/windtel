@@ -1,0 +1,29 @@
+<ion-header>
+    <ion-toolbar>
+      <ion-title>
+        Manage Users
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content padding="true" class="has-header">
+    <div>
+      <img src="assets/windtel_logo.png" style="display: block; width: 35%; height: auto; margin-left: auto; margin-right: auto;">
+    </div>
+    <ion-card>
+        <ion-card-header>
+          <ion-card-title>Add, modify, or delete users</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+            <form (ngSubmit)="tryModifyUsers()" #modifyUsers="ngForm">
+              <ul>
+                <li *ngFor="let user of users">
+                    <ion-badge color="primary">{{user.email}}</ion-badge><ion-badge color=tertiary>{{user.permissions}}</ion-badge><button title="delete user" (click)="delete(user)">Delete</button>
+                </li>
+              </ul>  
+              <ion-button type="submit" [disabled]="!modifyUsers.form.valid">Save changes</ion-button>
+            </form>
+        </ion-card-content>
+      </ion-card>
+  </ion-content>
+  

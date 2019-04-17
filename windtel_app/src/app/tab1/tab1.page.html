@@ -36,11 +36,11 @@
                   <ion-icon slot="start" color="medium" name="book"></ion-icon>
                   <ion-label>User Guide</ion-label>
                 </ion-item>
-                <ion-item *ngIf="permissions == 'Administrator' || permissions == 'Technician'" (click)="navigate()">
+                <ion-item *ngIf="permissions == 'Administrator' || permissions == 'Technician'" (click)="navigate('settings')">
                   <ion-icon slot="start" color="medium" name="build"></ion-icon>
                   <ion-label>Settings</ion-label>
                 </ion-item>
-                <ion-item *ngIf="permissions == 'Administrator'">
+                <ion-item *ngIf="permissions == 'Administrator'" (click)="navigate('manage-users')">
                     <ion-icon slot="start" color="medium" name="people"></ion-icon>
                     <ion-label>Manage Users</ion-label>
                   </ion-item>

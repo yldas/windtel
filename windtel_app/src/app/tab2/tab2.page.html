@@ -5,16 +5,16 @@
     </ion-title>
   </ion-toolbar>
 </ion-header>
-
 <ion-content>
     <ion-card class="welcome-card">
         <ion-img src="assets/windtel_logo.png" style="display: block; width: 35%; height: auto; margin-left: auto; margin-right: auto;"></ion-img>
         <ion-card-header>
+            <div *ngIf="success">Successfully designed experiment!</div>
           <ion-card-title>Perform an Experiment</ion-card-title>
         </ion-card-header>
     </ion-card>
     <ion-card>
-        {{getCurrentUser()}}
+       
       <ion-card-content *ngIf="permissions != 'Pending'">
           <ion-list>
               <ion-item>
@@ -99,7 +99,7 @@
                                 <ion-checkbox [checked]="allForces" slot="end"></ion-checkbox>
                             </ion-item>
                             <ion-item>
-                                <ion-label>Up</ion-label>
+                                <ion-label>Lift</ion-label>
                                 <ion-checkbox [checked]="allForces" slot="end"></ion-checkbox>
                             </ion-item>
                         </ion-list>
@@ -136,7 +136,7 @@
                     </div>
                 </ion-list>
               </ion-item>
-              <ion-button type="submit" [disabled]="!experiment.form.valid">Start Experiment</ion-button>
+              <ion-button type="submit" [disabled]="!experiment.form.valid" (click)="tryExperiment()">Start Experiment</ion-button>
           </ion-list>
       </ion-card-content>
     </ion-card>
