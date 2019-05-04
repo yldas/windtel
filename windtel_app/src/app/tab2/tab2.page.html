@@ -9,7 +9,6 @@
     <ion-card class="welcome-card">
         <ion-img src="assets/windtel_logo.png" style="display: block; width: 35%; height: auto; margin-left: auto; margin-right: auto;"></ion-img>
         <ion-card-header>
-            <div *ngIf="success">Successfully designed experiment!</div>
           <ion-card-title>Perform an Experiment</ion-card-title>
         </ion-card-header>
     </ion-card>
@@ -17,14 +16,16 @@
        
       <ion-card-content *ngIf="permissions != 'Pending'">
           <ion-list>
+                <form (ngSubmit)="tryExperiment()" #experiment="ngForm">
               <ion-item>
-                <ion-label position="floating">Rod length</ion-label>
+                <ion-label position="floating">Rod length (cm)</ion-label>
                 <ion-input [(ngModel)]="model.rodLength" name="rodLength" required></ion-input>
               </ion-item>
               <ion-item>
-                <ion-label position="floating">Experiment duration</ion-label>
-                <ion-input [(ngModel)]="model.time" name="time" required></ion-input>
+                <ion-label position="floating">Experiment duration (s)</ion-label>
+                <ion-input [(ngModel)]="model.time" name="expTime" required></ion-input>
               </ion-item>
+            
               <ion-item>
                 <ion-list>
                     <ion-item>
@@ -32,12 +33,12 @@
                     </ion-item>
                     <ion-item>
                         <ion-label>Barometric Pressure</ion-label>
-                        <ion-checkbox [(ngModel)]="pressureCheck" slot="end"></ion-checkbox>
+                        <ion-checkbox [(ngModel)]="pressureCheck" slot="end" name="pressureCB"></ion-checkbox>
                       </ion-item>
                           <ion-list *ngIf="pressureCheck">
                               <ion-item>
-                                  <ion-label position="floating">Samples</ion-label>
-                                  <ion-input slot="end"></ion-input>
+                                  <ion-label position="floating"># Samples:</ion-label>
+                                  <ion-input slot="end" name="pressureSamples" required></ion-input>
                               </ion-item>
                               <ion-item>
                                   <ion-label>Sensor 1</ion-label>
@@ -74,13 +75,13 @@
                           </ion-list>
                     <ion-item>
                         <ion-label>Wind Forces</ion-label>
-                        <ion-checkbox [(ngModel)]="forceCheck" slot="end"></ion-checkbox>
+                        <ion-checkbox [(ngModel)]="forceCheck" slot="end" name="forcesCB"></ion-checkbox>
                     </ion-item>
                     <div *ngIf="forceCheck">
                         <ion-list>
                             <ion-item>
-                                <ion-label position="floating">Samples</ion-label>
-                                <ion-input slot="end"></ion-input>
+                                <ion-label position="floating"># Samples:</ion-label>
+                                <ion-input slot="end" name="forceSamples" required></ion-input>
                             </ion-item>
                             <ion-item>
                                 <ion-label>Drag front</ion-label>
@@ -106,37 +107,39 @@
                       </div>
                     <ion-item>
                         <ion-label>Relative Humidity</ion-label>
-                        <ion-checkbox [(ngModel)]="humidityCheck" slot="end"></ion-checkbox>
+                        <ion-checkbox [(ngModel)]="humidityCheck" slot="end" name="humCB"></ion-checkbox>
                     </ion-item>
                     <div *ngIf="humidityCheck">
                         <ion-item>
-                            <ion-label position="floating">Samples</ion-label>
-                            <ion-input slot="end"></ion-input>
+                            <ion-label position="floating"># Samples:</ion-label>
+                            <ion-input slot="end" name="humiditySamples" required></ion-input>
                         </ion-item>
                     </div>
                     <ion-item>
                         <ion-label>Temperature</ion-label>
-                        <ion-checkbox [(ngModel)]="temperatureCheck" slot="end"></ion-checkbox>
+                        <ion-checkbox [(ngModel)]="temperatureCheck" slot="end" name="tempCB"></ion-checkbox>
                     </ion-item>
                     <div *ngIf="temperatureCheck">
                     <ion-item>
-                        <ion-label position="floating">Samples</ion-label>
-                        <ion-input slot="end"></ion-input>
+                        <ion-label position="floating"># Samples:</ion-label>
+                        <ion-input slot="end" name="tempSamples" required></ion-input>
                     </ion-item>
                     </div>
                     <ion-item>
                         <ion-label>Wind Speed</ion-label>
-                        <ion-checkbox [(ngModel)]="speedCheck" slot="end"></ion-checkbox>
+                        <ion-checkbox [(ngModel)]="speedCheck" slot="end" name="wsCB"></ion-checkbox>
                     </ion-item>
                     <div *ngIf="speedCheck">
                       <ion-item>
-                          <ion-label position="floating">Samples</ion-label>
-                          <ion-input slot="end"></ion-input>
+                          <ion-label position="floating"># Samples:</ion-label>
+                          <ion-input slot="end" name="speedSamples" required></ion-input>
                       </ion-item>
                     </div>
                 </ion-list>
               </ion-item>
               <ion-button type="submit" [disabled]="!experiment.form.valid" (click)="tryExperiment()">Start Experiment</ion-button>
+            </form>
+              <div *ngIf="success">Successfully designed experiment!</div>
           </ion-list>
       </ion-card-content>
     </ion-card>

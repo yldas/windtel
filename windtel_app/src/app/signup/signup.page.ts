@@ -70,4 +70,15 @@ export class SignupPage implements OnInit {
   ngOnInit() {
     this.getRegisteredUsers();
   }
+
+  navigate(url: string) {
+    console.log(url);
+    this.router.navigateByUrl(url);
+  }
+
+  keyDownFunction(event) {
+    if(event.keyCode == 13) {
+      this.tryRegister();
+    }
+  }
 }

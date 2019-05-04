@@ -70,7 +70,8 @@
                 </ion-list>
               </ion-card>
           </ion-list>
-          <ion-button type="submit" [disabled]="!experiment.form.valid">Generate Results</ion-button>
+          <ion-button type="submit" (click)="tryResults()">Generate Results</ion-button>
+          <div *ngIf="success">Successfully generated results!</div>
       </ion-card-content>
     </ion-card>
   </ion-content>

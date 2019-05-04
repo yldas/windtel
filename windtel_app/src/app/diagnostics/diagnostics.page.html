@@ -1,0 +1,33 @@
+<ion-header>
+    <ion-toolbar>
+      <ion-title>
+        Diagnostics
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content padding="true" class="has-header">
+    <div>
+      <img src="assets/windtel_logo.png" style="display: block; width: 35%; height: auto; margin-left: auto; margin-right: auto;">
+    </div>
+    <ion-card>
+        <ion-card-header>
+          <ion-card-title>Diagnose the WindTel System</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list>
+            <ion-item>
+              <p>Temperature & Humidity Sensor: DHT22 - <ion-chip color="success"><ion-label>Normal</ion-label></ion-chip></p>
+            </ion-item>
+            <ion-item>
+              <p>Wind Speed Sensor: Young Wind Monitor 05103 - <ion-chip color="success"><ion-label>Normal</ion-label></ion-chip></p>
+            </ion-item>
+            <ion-item>
+              <p>Barometric Pressure Sensor: BMP285 - <ion-chip color="success"><ion-label>Normal</ion-label></ion-chip></p>
+            </ion-item>
+          </ion-list>
+          <ion-button (click)="navigate('/tabs')">Back</ion-button>
+        </ion-card-content>
+      </ion-card>
+  </ion-content>
+  

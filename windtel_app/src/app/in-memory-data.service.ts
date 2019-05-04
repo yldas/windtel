@@ -14,7 +14,9 @@ export class InMemoryDataService implements InMemoryDbService {
       { id: 1, first: 'Misael', last: 'Valentin', email: 'misael.valentin@upr.edu', vocation: 'Student', department: 'ICOM', institution: 'UPRM', city: 'Aguadilla', password: '12345678', permissions: 'Researcher' },
       { id: 2, first: 'Raúl', last: 'Zapata', email: 'raul.zapata@upr.edu', vocation: 'Professor', department: 'INCI', institution: 'UPRM', city: 'Cabo Rojo', password: '12345678', permissions: 'Administrator' },
       { id: 3, first: 'Ivan', last: 'Santiago', email: 'ivan.santiago@upr.edu', vocation: 'Technician', department: 'INCI', institution: 'UPRM', city: 'Juana Díaz', password: '12345678', permissions: 'Technician' },
-      { id: 4, first: 'Nelson', last: 'Rodríguez', email: 'nelson.rodriguez21@upr.edu', vocation: 'Student', department: 'INEL', institution: 'UPRM', city: 'Lajas', password: '12345678', permissions: 'Pending' }
+      { id: 4, first: 'Nelson', last: 'Rodríguez', email: 'nelson.rodriguez21@upr.edu', vocation: 'Student', department: 'INEL', institution: 'UPRM', city: 'Lajas', password: '12345678', permissions: 'Pending' },
+      { id: 5, first: 'Admin', last: 'Zapata', email: 'admin@upr.edu', vocation: 'Professor', department: 'INCI', institution: 'UPRM', city: 'San Juan', password: 'adminpass', permissions: 'Administrator' },
+      { id: 6, first: 'Technician', last: 'Santiago', email: 'technician@upr.edu', vocation: 'Technician', department: 'INCI', institution: 'UPRM', city: 'San Juan', password: 'technicianpass', permissions: 'Technician' }
     ];
     const experiments = [
       { id: 1, name: 'my_first_experiment', description: 'This was my first experiment!', time: '5 minutes', date: '4/1/2019', userid: 1 }

@@ -18,10 +18,28 @@
             <form (ngSubmit)="tryModifyUsers()" #modifyUsers="ngForm">
               <ul>
                 <li *ngFor="let user of users">
-                    <ion-badge color="primary">{{user.email}}</ion-badge><ion-badge color=tertiary>{{user.permissions}}</ion-badge><button title="delete user" (click)="delete(user)">Delete</button>
+                  <ion-item>
+                    <ion-grid>
+                      <ion-row>
+                        <ion-col>
+                          <ion-label>{{user.email}}</ion-label>
+                        </ion-col>
+                        <ion-col size="5">
+                          <ion-select (ionChange)="changePermissions($event, user)" name="permissions" [disabled]="user.email==currentUser.email" placeholder="{{user.permissions}}" [interfaceOptions]="customPopoverOptions" interface="popover">
+                           <ion-select-option [value]="Administrator">Administrator</ion-select-option>
+                          <ion-select-option [value]="Researcher">Researcher</ion-select-option>
+                          </ion-select>
+                        </ion-col>
+                        <ion-col>
+                          <ion-button [disabled]="user.email==currentUser.email" title="delete user" (click)="delete(user)">Delete</ion-button>
+                        </ion-col>
+                        </ion-row>
+                      </ion-grid>
+                  </ion-item>
                 </li>
               </ul>  
               <ion-button type="submit" [disabled]="!modifyUsers.form.valid">Save changes</ion-button>
+              <ion-button (click)="navigate('/tabs')">Back</ion-button>
             </form>
         </ion-card-content>
       </ion-card>

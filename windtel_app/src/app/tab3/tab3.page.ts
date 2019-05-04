@@ -12,6 +12,11 @@ export class Tab3Page {
 
   currentUser: User;
   permissions: string;
+  success: boolean = false;
+
+  tryResults() {
+    this.success = true;
+  }
   
   constructor(private userService: UserService) { }
 

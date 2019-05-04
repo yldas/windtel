@@ -60,6 +60,13 @@ export class UserService {
     );
   }
 
+  changePermissions(user: User): Observable<any> {
+    return this.http.put(this.usersUrl, user, httpOptions).pipe(
+      tap(_ => this.log(`updated user id=${user.id}`)),
+      catchError(this.handleError<any>('changePermissions'))
+    );
+  }
+
   /** Log a UserService message with the MessageService */
   private log(message: string) {
   this.messageService.add(`UserService: ${message}`);

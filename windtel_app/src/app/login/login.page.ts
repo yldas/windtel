@@ -63,4 +63,10 @@ export class LoginPage implements OnInit {
   ngOnInit() {
     this.getRegisteredUsers();
   }
+
+  keyDownFunction(event) {
+    if(event.keyCode == 13) {
+      this.tryLogin();
+    }
+  }
 }
